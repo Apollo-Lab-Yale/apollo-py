@@ -12,6 +12,7 @@ numpy = "^2.0.1"
 torch = {version = "^2.3.1", optional = true}
 jax = {version = "^0.4.30", optional = true}
 scipy = "^1.14.0"
+apollo-rust-file-pyo3 = "^0.0.2"
 
 [tool.poetry.extras]
 torch = ["torch"]
