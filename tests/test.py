@@ -2,6 +2,8 @@ import apollo_rust_file_pyo3 as a
 
 from apollo_py.apollo_py.apollo_py_robotics.robot_directories import RobotPreprocessorRobotsDirectory
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.isometries import Isometry3, IsometryMatrix3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import LieGroupISE3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.matrices import M3
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions import Quaternion, UnitQuaternion
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
@@ -44,4 +46,11 @@ print(h.ln().exp())
 
 s = r3.to_lie_group_so3()
 print(s.ln())
+
+ll = LieGroupISE3q(UnitQuaternion.new_unchecked([1,0,0,0]), V3([1,2,3]))
+print(ll.ln().exp())
+
+ll2 = LieGroupISE3(Rotation3.from_euler_angles([1,2,3]), V3([1,2,3]))
+print(ll2)
+print(ll2.ln().exp())
 

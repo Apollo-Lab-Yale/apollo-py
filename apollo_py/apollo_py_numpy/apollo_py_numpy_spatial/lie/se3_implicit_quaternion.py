@@ -6,6 +6,7 @@ from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions import UnitQu
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.vectors import V3, V6
 import numpy as np
 
+
 class LieGroupISE3q(Isometry3):
     @classmethod
     def identity(cls) -> 'LieGroupISE3q':
@@ -15,7 +16,7 @@ class LieGroupISE3q(Isometry3):
         a_quat = LieGroupH1(self.rotation.array).ln()
         u = a_quat.vee()
         a_mat: LieAlgSO3 = u.to_lie_alg_so3()
-        beta = np.linalg.norm(u)
+        beta = np.linalg.norm(u.array)
 
         if abs(beta) < 0.00001:
             pp = 0.5 - ((beta ** 2.0) / 24.0) + ((beta ** 4.0) / 720.0)
@@ -54,7 +55,7 @@ class LieAlgISE3q:
         u = LieAlgH1(self.quaternion.array).vee()
         a_mat: LieAlgSO3 = u.to_lie_alg_so3()
 
-        beta = np.linalg.norm(u)
+        beta = np.linalg.norm(u.array)
 
         if abs(beta) < 0.00001:
             pp = 0.5 - ((beta ** 2.0) / 24.0) + ((beta ** 4.0) / 720.0)
@@ -64,19 +65,19 @@ class LieAlgISE3q:
             qq = (beta - np.sin(beta)) / (beta ** 3.0)
 
         c_mat = np.identity(3) + pp * a_mat.array + qq * (a_mat.array @ a_mat.array)
-        t = c_mat@self.vector
+        t = V3(c_mat @ self.vector.array)
         q = LieAlgH1(self.quaternion.array).exp()
 
-        return LieGroupISE3q(q, t)
+        return LieGroupISE3q(UnitQuaternion(q.array), t)
 
     def vee(self) -> 'V6':
-        u = LieAlgH1(self.quaternion).vee()
+        u = LieAlgH1(self.quaternion.array).vee()
         v = self.vector
 
         return V6([u[0], u[1], u[2], v[0], v[1], v[2]])
 
     def __repr__(self) -> str:
-        return f"LieAlgISE3q(\n  quaternion: {np.array2string(self.quaternion)},\n  ----- \n  vector: {np.array2string(self.vector)}\n)"
+        return f"LieAlgISE3q(\n  quaternion: {np.array2string(self.quaternion.array)},\n  ----- \n  vector: {np.array2string(self.vector.array)}\n)"
 
     def __str__(self) -> str:
-        return f"LieAlgISE3q(\n  quaternion: {np.array2string(self.quaternion)},\n  ----- \n  vector: {np.array2string(self.vector)}\n)"
+        return f"LieAlgISE3q(\n  quaternion: {np.array2string(self.quaternion.array)},\n  ----- \n  vector: {np.array2string(self.vector.array)}\n)"
