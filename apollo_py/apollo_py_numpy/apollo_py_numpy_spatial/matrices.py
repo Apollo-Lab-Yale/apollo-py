@@ -8,6 +8,12 @@ class M3:
         if self.array.shape != (3, 3):
             raise ValueError("Matrix3 must be a 3x3 matrix.")
 
+    def __getitem__(self, item):
+        return self.array[item]
+
+    def __setitem__(self, key, value):
+        self.array[key] = value
+
     def __repr__(self) -> str:
         return f"Matrix3(\n{np.array2string(self.array)}\n)"
 
