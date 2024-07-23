@@ -3,7 +3,7 @@ from typing import Union, List
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions import UnitQuaternion, Quaternion
 import numpy as np
 
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.vectors import V3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
 
 class LieGroupH1(UnitQuaternion):

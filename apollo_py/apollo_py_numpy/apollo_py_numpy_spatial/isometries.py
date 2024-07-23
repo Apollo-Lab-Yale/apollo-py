@@ -1,6 +1,6 @@
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions import UnitQuaternion
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.vectors import V3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 import numpy as np
 
 

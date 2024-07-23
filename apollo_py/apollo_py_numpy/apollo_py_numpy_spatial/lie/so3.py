@@ -1,6 +1,6 @@
 from typing import Union, List
 
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.matrices import M3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
 import numpy as np
 

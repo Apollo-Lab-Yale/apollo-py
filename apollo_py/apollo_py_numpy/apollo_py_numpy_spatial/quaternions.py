@@ -2,7 +2,7 @@ from typing import Union, List
 
 import numpy as np
 
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.vectors import V3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
 
 class Quaternion:

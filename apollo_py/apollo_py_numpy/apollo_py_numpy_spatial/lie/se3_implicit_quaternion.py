@@ -1,9 +1,8 @@
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.isometries import Isometry3
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.h1 import LieGroupH1, LieAlgH1
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.so3 import LieAlgSO3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.matrices import M3
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions import UnitQuaternion, Quaternion
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.vectors import V3, V6
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3, V6
 import numpy as np
 
 

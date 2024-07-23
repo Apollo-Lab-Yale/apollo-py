@@ -2,9 +2,9 @@ import numpy as np
 
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.isometries import IsometryMatrix3
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.so3 import LieGroupSO3, LieAlgSO3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.matrices import M3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.vectors import V3, V6
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3, V6
 
 
 class LieGroupISE3(IsometryMatrix3):

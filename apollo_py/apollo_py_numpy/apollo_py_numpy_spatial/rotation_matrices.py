@@ -2,8 +2,8 @@ from typing import Union, List
 
 import numpy as np
 
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.matrices import M3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.vectors import V3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
 
 class Rotation3(M3):

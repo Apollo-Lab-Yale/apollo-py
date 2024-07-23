@@ -5,7 +5,7 @@ from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import L
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions import UnitQuaternion
 from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.vectors import V3
+from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
 
 class ApolloURDFNumpyPose:
