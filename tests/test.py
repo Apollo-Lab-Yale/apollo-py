@@ -1,16 +1,16 @@
 import apollo_rust_file_pyo3 as a
 
-from apollo_py.apollo_py.apollo_py_robotics.robot_directories import RobotPreprocessorRobotsDirectory
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.isometries import Isometry3, IsometryMatrix3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import LieGroupISE3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
-from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions import Quaternion, UnitQuaternion
-from apollo_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
-from apollo_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
+from apollo_toolbox_py.apollo_py.apollo_py_robotics.resources_directories import ResourcesRobotsDirectory
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.isometries import Isometry3, IsometryMatrix3
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import LieGroupISE3
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions import Quaternion, UnitQuaternion
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
 fp = a.PathBufPy.new_from_default_apollo_robots_dir()
-r = RobotPreprocessorRobotsDirectory(fp)
+r = ResourcesRobotsDirectory(fp)
 s = r.get_robot_subdirectory('ur5')
 
 urdf_module = s.to_dof_module()

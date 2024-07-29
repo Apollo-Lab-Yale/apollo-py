@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "apollo-py"
+name = "apollo-toolbox-py"
 version = "0.0.1"
 description = ""
 authors = ["Danny Rakita <daniel.rakita@yale.edu>"]
