@@ -16,3 +16,12 @@ __all__ = ['np',
            'apollo_numpy_spatial',
            'apollo_numpy_linalg',
            'apollo_numpy_robotics']
+
+try:
+    import bpy
+    import easybpy.easybpy as ebpy
+    __all__.append('bpy')
+    __all__.append('ebpy')
+except ImportError:
+    bpy = None
+    easybpy = None
