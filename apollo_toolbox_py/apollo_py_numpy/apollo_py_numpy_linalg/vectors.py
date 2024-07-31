@@ -20,6 +20,9 @@ class V:
     def norm(self, ord=None):
         return np.linalg.norm(self.array, ord=ord)
 
+    def normalize(self):
+        return type(self)(self.array / self.norm())
+
     def __add__(self, other):
         if isinstance(other, V):
             other = other.array
@@ -70,6 +73,11 @@ class V3(V):
     def to_lie_alg_h1(self):
         from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.h1 import LieAlgH1
         return LieAlgH1.from_euclidean_space_element(self.array)
+
+    def cross(self, other: 'V3') -> 'V3':
+        if not isinstance(other, V3):
+            raise TypeError("Cross product requires another V3 vector.")
+        return V3(np.linalg.cross(self.array, other.array))
 
     def __repr__(self) -> str:
         return f"V3(\n{np.array2string(self.array)}\n)"

@@ -1,4 +1,5 @@
-from typing import Union, List
+import math
+from typing import Union, List, Any
 
 import numpy as np
 
@@ -65,6 +66,58 @@ class Rotation3(M3):
         rotation_matrix = R_z @ R_y @ R_x
 
         return cls(rotation_matrix)
+
+    @classmethod
+    def from_axis_angle(cls, axis: V3, angle: float) -> 'Rotation3':
+        if angle == 0.0:
+            return Rotation3.new_unchecked(np.eye(3))
+
+        axis = axis.array / np.linalg.norm(axis.array)
+        x, y, z = axis
+        cos_theta = np.cos(angle)
+        sin_theta = np.sin(angle)
+        one_minus_cos = 1 - cos_theta
+
+        rotation_matrix = np.array([
+            [cos_theta + x * x * one_minus_cos,
+             x * y * one_minus_cos - z * sin_theta,
+             x * z * one_minus_cos + y * sin_theta],
+            [y * x * one_minus_cos + z * sin_theta,
+             cos_theta + y * y * one_minus_cos,
+             y * z * one_minus_cos - x * sin_theta],
+            [z * x * one_minus_cos - y * sin_theta,
+             z * y * one_minus_cos + x * sin_theta,
+             cos_theta + z * z * one_minus_cos]
+        ])
+
+        return cls(rotation_matrix)
+
+    @classmethod
+    def from_look_at(cls, look_at_vector: V3, axis: V3) -> 'Rotation3':
+        look_at_vector = look_at_vector.normalize()
+        axis = axis.normalize()
+
+        rotation_axis = axis.cross(look_at_vector)
+        angle = np.acos(min(axis.dot(look_at_vector), 1.0))
+
+        return Rotation3.from_axis_angle(rotation_axis, angle)
+
+    def to_euler_angles(self) -> list[float | Any]:
+        m = self.array
+        if m[2, 0] < 1:
+            if m[2, 0] > -1:
+                pitch = np.arcsin(-m[2, 0])
+                roll = np.arctan2(m[2, 1], m[2, 2])
+                yaw = np.arctan2(m[1, 0], m[0, 0])
+            else:
+                pitch = np.pi / 2
+                roll = np.arctan2(-m[1, 2], m[1, 1])
+                yaw = 0
+        else:
+            pitch = -np.pi / 2
+            roll = np.arctan2(-m[1, 2], m[1, 1])
+            yaw = 0
+        return [roll, pitch, yaw]
 
     def inverse(self) -> 'Rotation3':
         return self.new_unchecked(self.array.T)

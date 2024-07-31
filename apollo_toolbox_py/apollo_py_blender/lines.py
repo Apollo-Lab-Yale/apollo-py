@@ -1,8 +1,11 @@
 from easybpy.easybpy import *
 import numpy as np
 
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
 
-class Line:
+
+class BlenderLine:
     def __init__(self):
         self.radius = None
         self.line_mesh = None
@@ -10,8 +13,8 @@ class Line:
         self.length = 2.0
 
     @staticmethod
-    def spawn_new(start_point, end_point, radius=0.01, vertices=6, name=None, collection_name='Lines', material=None):
-        line = Line()
+    def spawn_new(start_point, end_point, radius=0.01, vertices=6, name=None, collection_name='Lines', material=None) -> 'BlenderLine':
+        line = BlenderLine()
         line.radius = radius
         line.name = name
 
@@ -29,7 +32,7 @@ class Line:
 
         line.line_mesh = object
 
-        # line.change_pose(start_point, end_point)
+        line.change_pose(start_point, end_point)
 
         if material is not None:
             material.apply_material_to_object(line.line_mesh)
@@ -37,11 +40,11 @@ class Line:
         return line
 
     @staticmethod
-    def spawn_new_copy(line, start_point, end_point, radius=0.01, name=None, collection_name='Lines', material=None):
+    def spawn_new_copy(line, start_point, end_point, radius=0.01, name=None, collection_name='Lines', material=None) -> 'BlenderLine':
         new_mesh = copy_object(line.line_mesh, collection_name)
         if name is not None:
             rename_object(new_mesh, name)
-        out_line = Line()
+        out_line = BlenderLine()
         out_line.radius = radius
         out_line.line_mesh = new_mesh
         out_line.name = name
@@ -61,9 +64,10 @@ class Line:
         center = (s + e) / 2.0
         length = np.linalg.norm(d)
 
-        r = None
+        r = Rotation3.from_look_at(V3([d[0], d[1], d[2]]), V3([0,0,1]))
         # r = optima.OptimaRotationPy.new_rotation_matrix_from_lookat_py([d[0], d[1], d[2]], "Z")
-        euler_angles = r.to_euler_angles_py()
+        # euler_angles = r.to_euler_angles_py()
+        euler_angles = r.to_euler_angles()
         if euler_angles == [0., 0., 0.]:
             print('ERROR in line change pose: ', start_point, end_point)
 
