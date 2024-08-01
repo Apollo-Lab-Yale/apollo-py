@@ -7,6 +7,9 @@ from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
 
+__all__ = ['Rotation3']
+
+
 class Rotation3(M3):
     def __init__(self, array: Union[List[List[float]], np.ndarray]):
         super().__init__(array)

@@ -1,5 +1,7 @@
 from typing import List, Optional, Dict
 
+__all__ = ['ApolloConnectionsModule']
+
 
 class ApolloConnectionsModule:
     def __init__(self, link_connection_paths: List[List[Optional[List[int]]]]):

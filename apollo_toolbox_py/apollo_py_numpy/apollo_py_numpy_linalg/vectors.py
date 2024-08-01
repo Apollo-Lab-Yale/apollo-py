@@ -1,6 +1,8 @@
 from typing import Union, List
 import numpy as np
 
+__all__ = ['V', 'V3', 'V6']
+
 
 class V:
     def __init__(self, array: Union[List[float], np.ndarray]):

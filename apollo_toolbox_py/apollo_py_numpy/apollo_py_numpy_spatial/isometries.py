@@ -3,6 +3,8 @@ from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 import numpy as np
 
+__all__ = ['Isometry3', 'IsometryMatrix3']
+
 
 class Isometry3:
     def __init__(self, q: UnitQuaternion, v: V3):

@@ -3,6 +3,7 @@ from typing import List, Optional
 from apollo_rust_file_pyo3 import PathBufPy
 import copy
 
+__all__ = ['PathBufPyWrapper']
 
 class PathBufPyWrapper:
     def __init__(self):
@@ -91,3 +92,4 @@ class PathBufPyWrapper:
 
     def __str__(self):
         return f"PathBufPy({self.path_buf.to_string()})"
+

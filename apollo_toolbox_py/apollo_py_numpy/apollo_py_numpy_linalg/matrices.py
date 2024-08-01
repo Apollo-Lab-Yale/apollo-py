@@ -1,6 +1,8 @@
 import numpy as np
 from typing import Union, List, Tuple, Any
 
+__all__ = ['M', 'M3']
+
 
 class M:
     def __init__(self, array: Union[List[List[float]], np.ndarray]):

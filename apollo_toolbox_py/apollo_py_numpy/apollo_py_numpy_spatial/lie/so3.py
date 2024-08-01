@@ -4,6 +4,8 @@ from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
 import numpy as np
 
+__all__ = ['LieGroupSO3', 'LieAlgSO3']
+
 
 class LieGroupSO3(Rotation3):
     @classmethod

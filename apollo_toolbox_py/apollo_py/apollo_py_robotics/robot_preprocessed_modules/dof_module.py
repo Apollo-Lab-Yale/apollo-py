@@ -1,8 +1,11 @@
 from typing import List, Dict
 
+__all__ = ['ApolloDOFModule']
+
 
 class ApolloDOFModule:
-    def __init__(self, num_dofs: int, dof_idx_to_joint_idx_mapping: List[int], joint_idx_to_dof_idxs_mapping: List[List[int]]):
+    def __init__(self, num_dofs: int, dof_idx_to_joint_idx_mapping: List[int],
+                 joint_idx_to_dof_idxs_mapping: List[List[int]]):
         self.num_dofs = num_dofs
         self.dof_idx_to_joint_idx_mapping = dof_idx_to_joint_idx_mapping
         self.joint_idx_to_dof_idxs_mapping = joint_idx_to_dof_idxs_mapping

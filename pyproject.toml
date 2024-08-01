@@ -21,7 +21,7 @@ easybpy = { git = "https://github.com/djrakita/EasyBPY", branch = "master", opti
 all = ["torch", "jax", "bpy", "mathutils", "easybpy"]
 torch = ["torch"]
 jax = ["jax"]
-bpy = ["bpy", "mathutils", "easybpy"]
+bpy = ["bpy", "easybpy"]
 
 [build-system]
 requires = ["poetry-core"]

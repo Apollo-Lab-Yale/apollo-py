@@ -16,6 +16,7 @@ from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.u
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.robot_runtime_modules.urdf_numpy_module import \
     ApolloURDFNumpyModule
 
+__all__ = ['ResourcesRobotsDirectory', 'ResourcesSingleRobotDirectory']
 
 class ResourcesRobotsDirectory:
     def __init__(self, directory: PathBufPy):

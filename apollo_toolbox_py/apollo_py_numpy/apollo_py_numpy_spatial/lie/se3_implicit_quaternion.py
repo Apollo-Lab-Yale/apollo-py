@@ -5,6 +5,8 @@ from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.quaternions impor
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3, V6
 import numpy as np
 
+__all__ = ['LieGroupISE3q', 'LieAlgISE3q']
+
 
 class LieGroupISE3q(Isometry3):
     @classmethod

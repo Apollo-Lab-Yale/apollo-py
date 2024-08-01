@@ -6,6 +6,8 @@ from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3, V6
 
+__all__ = ['LieGroupISE3', 'LieAlgISE3']
+
 
 class LieGroupISE3(IsometryMatrix3):
     @classmethod

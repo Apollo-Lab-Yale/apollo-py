@@ -4,6 +4,8 @@ import numpy as np
 
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
+__all__ = ['Quaternion', 'UnitQuaternion']
+
 
 class Quaternion:
     def __init__(self, wxyz_array: Union[List[float], np.ndarray]):
@@ -121,7 +123,7 @@ class UnitQuaternion(Quaternion):
 
     def map_point(self, v: V3) -> 'V3':
         qv = Quaternion([0.0, v.array[0], v.array[1], v.array[2]])
-        res = self@qv@self.conjugate()
+        res = self @ qv @ self.conjugate()
         return V3([res[1], res[2], res[3]])
 
     def to_lie_group_h1(self) -> 'LieGroupH1':

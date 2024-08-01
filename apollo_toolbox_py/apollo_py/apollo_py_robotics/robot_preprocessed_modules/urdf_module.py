@@ -261,3 +261,25 @@ class ApolloURDFModule:
             joints=joints,
             materials=materials
         )
+
+'''
+__all__ = ['ApolloURDFVisual',
+           'ApolloURDFPose',
+           'ApolloURDFDynamics',
+           'ApolloURDFInertia',
+           'ApolloURDFCollision',
+           'ApolloURDFAxis',
+           'ApolloURDFInertial',
+           'ApolloURDFLink',
+           'ApolloURDFMass',
+           'ApolloURDFGeometry',
+           'ApolloURDFJoint',
+           'ApolloURDFLimit',
+           'ApolloURDFMimic',
+           'ApolloURDFLimit',
+           'ApolloURDFTexture',
+           'ApolloURDFMaterial',
+           'ApolloURDFColor',
+           'ApolloURDFModule',
+           'ApolloURDFSafetyController']
+'''

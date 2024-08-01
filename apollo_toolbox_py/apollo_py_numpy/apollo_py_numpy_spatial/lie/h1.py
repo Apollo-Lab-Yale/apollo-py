@@ -6,6 +6,8 @@ import numpy as np
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
 
+__all__ = ['LieGroupH1', 'LieAlgH1']
+
 class LieGroupH1(UnitQuaternion):
     @classmethod
     def identity(cls) -> 'LieGroupH1':
