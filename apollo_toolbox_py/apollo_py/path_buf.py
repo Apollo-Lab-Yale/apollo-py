@@ -1,9 +1,9 @@
 from typing import List, Optional
 
 from apollo_rust_file_pyo3 import PathBufPy
-import copy
 
 __all__ = ['PathBufPyWrapper']
+
 
 class PathBufPyWrapper:
     def __init__(self):
@@ -30,6 +30,10 @@ class PathBufPyWrapper:
     @classmethod
     def new_from_default_apollo_robots_dir(cls) -> 'PathBufPyWrapper':
         return cls._new_from_path_buf(PathBufPy.new_from_default_apollo_robots_dir())
+
+    @classmethod
+    def new_from_default_apollo_environments_dir(cls) -> 'PathBufPyWrapper':
+        return cls._new_from_path_buf(PathBufPy.new_from_default_apollo_environments_dir())
 
     def append(self, s: str) -> 'PathBufPyWrapper':
         return self._new_from_path_buf(self.path_buf.append(s))
@@ -73,7 +77,9 @@ class PathBufPyWrapper:
     def extra_last_n_segments(self, n: int) -> 'PathBufPyWrapper':
         return self._new_from_path_buf(self.path_buf.extract_last_n_segments(n))
 
-    def get_all_items_in_directory(self, include_directories: bool = True, include_hidden_directories: bool = True, include_files: bool = True, include_hidden_files: bool = True) -> 'List[PathBufPyWrapper]':
+    def get_all_items_in_directory(self, include_directories: bool = True, include_hidden_directories: bool = True,
+                                   include_files: bool = True,
+                                   include_hidden_files: bool = True) -> 'List[PathBufPyWrapper]':
         res = self.path_buf.get_all_items_in_directory(include_directories, include_hidden_directories, include_files,
                                                        include_hidden_files)
         return [self._new_from_path_buf(p) for p in res]
@@ -92,4 +98,3 @@ class PathBufPyWrapper:
 
     def __str__(self):
         return f"PathBufPy({self.path_buf.to_string()})"
-

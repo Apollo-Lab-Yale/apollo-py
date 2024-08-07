@@ -2,7 +2,8 @@ import json
 
 from apollo_rust_file_pyo3 import PathBufPy
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.chain_module import ApolloChainModule
-from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.connections_module import ApolloConnectionsModule
+from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.connections_module import \
+    ApolloConnectionsModule
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.dof_module import ApolloDOFModule
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.mesh_modules.convex_decomposition_meshes_module import \
     ApolloConvexDecompositionMeshesModule
@@ -13,25 +14,27 @@ from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.m
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.mesh_modules.plain_meshes_module import \
     ApolloPlainMeshesModule
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.urdf_module import ApolloURDFModule
+from apollo_toolbox_py.apollo_py.path_buf import PathBufPyWrapper
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.robot_runtime_modules.urdf_numpy_module import \
     ApolloURDFNumpyModule
 
-__all__ = ['ResourcesRobotsDirectory', 'ResourcesSingleRobotDirectory']
+__all__ = ['ResourcesRootDirectory', 'ResourcesSubDirectory']
 
-class ResourcesRobotsDirectory:
-    def __init__(self, directory: PathBufPy):
+
+class ResourcesRootDirectory:
+    def __init__(self, directory: PathBufPyWrapper):
         self.directory = directory
 
-    def get_robot_subdirectory(self, robot_name: str):
-        directory = self.directory.append(robot_name)
-        return ResourcesSingleRobotDirectory(robot_name, self.directory, directory)
+    def get_subdirectory(self, name: str) -> 'ResourcesSubDirectory':
+        directory = self.directory.append(name)
+        return ResourcesSubDirectory(name, self.directory, directory)
 
 
-class ResourcesSingleRobotDirectory:
-    def __init__(self, robot_name: str, robots_directory: PathBufPy, directory: PathBufPy):
-        self.robot_name: str = robot_name
-        self.robots_directory: PathBufPy = robots_directory
-        self.directory: PathBufPy = directory
+class ResourcesSubDirectory:
+    def __init__(self, name: str, robots_directory: PathBufPyWrapper, directory: PathBufPyWrapper):
+        self.name: str = name
+        self.root_directory: PathBufPyWrapper = robots_directory
+        self.directory: PathBufPyWrapper = directory
 
     def to_urdf_module(self) -> 'ApolloURDFModule':
         dd = self.directory.append('urdf_module/module.json')

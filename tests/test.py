@@ -1,6 +1,6 @@
 import apollo_rust_file_pyo3 as a
 
-from apollo_toolbox_py.apollo_py.apollo_py_robotics.resources_directories import ResourcesRobotsDirectory
+from apollo_toolbox_py.apollo_py.apollo_py_robotics.resources_directories import ResourcesRootDirectory
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.isometries import Isometry3, IsometryMatrix3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import LieGroupISE3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
@@ -10,8 +10,8 @@ from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 
 fp = a.PathBufPy.new_from_default_apollo_robots_dir()
-r = ResourcesRobotsDirectory(fp)
-s = r.get_robot_subdirectory('ur5')
+r = ResourcesRootDirectory(fp)
+s = r.get_subdirectory('ur5')
 
 urdf_module = s.to_dof_module()
 print(urdf_module)
