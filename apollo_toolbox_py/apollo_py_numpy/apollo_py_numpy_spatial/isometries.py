@@ -22,6 +22,12 @@ class Isometry3:
     def map_point(self, v: V3) -> 'V3':
         return V3(self.rotation.map_point(v).array + self.translation.array)
 
+    def get_translation(self) -> V3:
+        return self.translation
+
+    def get_rotation(self) -> UnitQuaternion:
+        return self.rotation
+
     def __matmul__(self, other: 'Isometry3') -> 'Isometry3':
         new_rotation = self.rotation @ other.rotation
         new_translation = V3(self.rotation.map_point(other.translation).array + self.translation.array)
@@ -52,6 +58,12 @@ class IsometryMatrix3:
 
     def map_point(self, v: V3) -> 'V3':
         return V3(self.rotation.map_point(v).array + self.translation.array)
+
+    def get_translation(self) -> V3:
+        return self.translation
+
+    def get_rotation(self) -> Rotation3:
+        return self.rotation
 
     def __matmul__(self, other: 'IsometryMatrix3') -> 'IsometryMatrix3':
         new_rotation = Rotation3.new_unchecked(self.rotation.array @ other.rotation.array)

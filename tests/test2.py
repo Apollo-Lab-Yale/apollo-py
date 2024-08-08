@@ -14,6 +14,7 @@ chain = ChainNumpy(s)
 
 print(chain.urdf_module.joints[1].joint_type)
 
-res = chain.fk(V([0., 0., 0., 0., 0., 0.]), LieGroupISE3)
-print(res)
+res = chain.fk(V([0., 0., 0., 0., 0., 0.]), LieGroupISE3q)
+print(res[0].get_rotation())
+print(res[0].get_translation())
 
