@@ -14,6 +14,5 @@ r = ResourcesRootDirectory(p)
 s = r.get_subdirectory('ur5')
 chain = ChainNumpy(s)
 
-res = chain.convex_hull_meshes_module.recover_full_glb_path_bufs(r)
+res = chain.fk(V([1., 2., 3., 4., 5., 6.]))
 print(res)
-

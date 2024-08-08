@@ -93,6 +93,9 @@ class PathBufPyWrapper:
     def write_string_to_file(self, s: str):
         self.path_buf.write_string_to_file(s)
 
+    def to_string(self) -> str:
+        return self.path_buf.to_string()
+
     def __repr__(self):
         return f"PathBufPy({self.path_buf.to_string()})"
 

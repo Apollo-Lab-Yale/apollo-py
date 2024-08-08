@@ -7,9 +7,9 @@ from easybpy.easybpy import (
     move_object_to_collection, copy_object, scale_along_local_z,
     location, rotation, scale_along_local_x, scale_along_local_y, delete_object
 )
-from apollo_toolbox_py.apollo_py_blender.keyframes import KeyframeUtils
-from apollo_toolbox_py.apollo_py_blender.material import ApolloBlenderSimpleMaterial
-from apollo_toolbox_py.apollo_py_blender.visibility import set_visibility
+from apollo_toolbox_py.apollo_py_blender.utils.keyframes import KeyframeUtils
+from apollo_toolbox_py.apollo_py_blender.utils.material import ApolloBlenderSimpleMaterial
+from apollo_toolbox_py.apollo_py_blender.utils.visibility import set_visibility
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
 

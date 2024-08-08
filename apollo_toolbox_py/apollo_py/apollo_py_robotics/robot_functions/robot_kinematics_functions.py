@@ -1,3 +1,4 @@
+__all__ = ['RobotKinematicFunctions']
 
 
 class RobotKinematicFunctions:
@@ -26,21 +27,25 @@ class RobotKinematicFunctions:
                 joint_dofs = [state[i] for i in dof_idxs]
                 joint_axis = parent_joint.axis.xyz
                 joint_type = parent_joint.joint_type
-                variable_transform = RobotKinematicFunctions.get_joint_variable_transform(joint_type, joint_axis, joint_dofs, lie_group_type, vector3_type, vector6_type)
-                out[link_idx] = out[parent_link_idx].group_operator(constant_transform).group_operator(variable_transform)
+                variable_transform = RobotKinematicFunctions.get_joint_variable_transform(joint_type, joint_axis,
+                                                                                          joint_dofs, lie_group_type,
+                                                                                          vector3_type, vector6_type)
+                out[link_idx] = out[parent_link_idx].group_operator(constant_transform).group_operator \
+                    (variable_transform)
 
         return out
 
     @staticmethod
-    def get_joint_variable_transform(joint_type: str, joint_axis, joint_dofs, lie_group_type: type, vector3_type: type, vector6_type: type):
+    def get_joint_variable_transform(joint_type: str, joint_axis, joint_dofs, lie_group_type: type, vector3_type: type,
+                                     vector6_type: type):
         if joint_type == 'Revolute':
             assert len(joint_dofs) == 1
             sa = joint_dofs[0] * joint_axis
-            return lie_group_type.from_scaled_axis(sa,  vector3_type([0, 0, 0]))
+            return lie_group_type.from_scaled_axis(sa, vector3_type([0, 0, 0]))
         elif joint_type == 'Continuous':
             assert len(joint_dofs) == 1
             sa = joint_dofs[0] * joint_axis
-            return lie_group_type.from_scaled_axis(sa,  vector3_type([0, 0, 0]))
+            return lie_group_type.from_scaled_axis(sa, vector3_type([0, 0, 0]))
         elif joint_type == 'Prismatic':
             assert len(joint_dofs) == 1
             sa = joint_dofs[0] * joint_axis
