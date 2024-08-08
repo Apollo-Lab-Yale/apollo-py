@@ -9,9 +9,30 @@ __all__ = ['LieGroupISE3q', 'LieAlgISE3q']
 
 
 class LieGroupISE3q(Isometry3):
+    @staticmethod
+    def get_lie_alg_type() -> type:
+        return LieAlgISE3q
+
+    @classmethod
+    def from_isometry3(cls, isometry: 'Isometry3') -> 'LieGroupISE3q':
+        rotation = isometry.rotation
+        translation = isometry.translation
+        return cls(rotation, translation)
+
+    @classmethod
+    def from_scaled_axis(cls, scaled_axis: V3, translation: V3) -> 'LieGroupISE3q':
+        return LieGroupISE3q.from_isometry3(Isometry3(UnitQuaternion.from_scaled_axis(scaled_axis), translation))
+
+    @classmethod
+    def from_euler_angles(cls, euler_angles: V3, translation: V3) -> 'LieGroupISE3q':
+        return LieGroupISE3q.from_isometry3(Isometry3(UnitQuaternion.from_euler_angles(euler_angles), translation))
+
     @classmethod
     def identity(cls) -> 'LieGroupISE3q':
         return LieGroupISE3q(UnitQuaternion.new_unchecked([1, 0, 0, 0]), V3([0, 0, 0]))
+
+    def group_operator(self, other: 'LieGroupISE3q') -> 'LieGroupISE3q':
+        return LieGroupISE3q.from_isometry3(self @ other)
 
     def ln(self) -> 'LieAlgISE3q':
         a_quat = LieGroupH1(self.rotation.array).ln()

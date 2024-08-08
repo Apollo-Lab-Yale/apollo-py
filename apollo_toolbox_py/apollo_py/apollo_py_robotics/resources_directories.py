@@ -1,6 +1,5 @@
-import json
 
-from apollo_rust_file_pyo3 import PathBufPy
+import json
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.chain_module import ApolloChainModule
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.connections_module import \
     ApolloConnectionsModule
@@ -87,3 +86,11 @@ class ResourcesSubDirectory:
         st = dd.read_file_contents_to_string()
         d = json.loads(st)
         return ApolloConvexDecompositionMeshesModule.from_dict(d)
+
+    def to_chain(self):
+        from apollo_toolbox_py.apollo_py.apollo_py_robotics.chain import Chain
+        return Chain(self)
+
+    def to_chain_numpy(self):
+        from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.chain_numpy import ChainNumpy
+        return ChainNumpy(self)

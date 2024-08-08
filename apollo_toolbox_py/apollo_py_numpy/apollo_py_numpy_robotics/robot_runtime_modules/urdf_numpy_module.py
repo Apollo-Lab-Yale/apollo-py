@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Type
 
 import numpy as np
 
@@ -22,17 +22,24 @@ __all__ = ['ApolloURDFNumpyPose',
 '''
 
 
-
 class ApolloURDFNumpyPose:
     def __init__(self, xyz: np.ndarray, rpy: np.ndarray):
         self.xyz = xyz
         self.rpy = rpy
-        self.pose = LieGroupISE3q(UnitQuaternion.from_euler_angles(self.rpy), V3(self.xyz))
-        self.pose_m = LieGroupISE3(Rotation3.from_euler_angles(self.rpy), V3(self.xyz))
+        self.pose: LieGroupISE3q = LieGroupISE3q(UnitQuaternion.from_euler_angles(V3(self.rpy)), V3(self.xyz))
+        self.pose_m: LieGroupISE3 = LieGroupISE3(Rotation3.from_euler_angles(V3(self.rpy)), V3(self.xyz))
 
     @classmethod
     def from_apollo_urdf_pose(cls, pose: ApolloURDFPose):
         return cls(np.array(pose.xyz), np.array(pose.rpy))
+
+    def get_pose_from_lie_group_type(self, lie_group_type: Union[Type[LieGroupISE3q], Type[LieGroupISE3]]) -> Union[LieGroupISE3q, LieGroupISE3]:
+        if issubclass(lie_group_type, LieGroupISE3):
+            return self.pose_m
+        elif issubclass(lie_group_type, LieGroupISE3q):
+            return self.pose
+        else:
+            raise ValueError('not legal argument')
 
     def __repr__(self):
         return f"ApolloURDFNumpyPose(xyz={self.xyz}, rpy={self.rpy})"
@@ -73,12 +80,12 @@ class ApolloURDFNumpyInertial:
 
 
 class ApolloURDFNumpyAxis:
-    def __init__(self, xyz: np.ndarray):
-        self.xyz = xyz
+    def __init__(self, xyz: V3):
+        self.xyz: V3 = xyz
 
     @classmethod
     def from_apollo_urdf_axis(cls, axis: ApolloURDFAxis):
-        return cls(np.array(axis.xyz))
+        return cls(V3(axis.xyz))
 
     def __repr__(self):
         return f"ApolloURDFNumpyAxis(xyz={self.xyz})"
@@ -186,4 +193,3 @@ class ApolloURDFNumpyModule:
     def __repr__(self):
         return (f"ApolloURDFNumpyModule(name={self.name}, links={self.links}, "
                 f"joints={self.joints}, materials={self.materials})")
-

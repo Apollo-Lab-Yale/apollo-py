@@ -36,17 +36,8 @@ class Rotation3(M3):
         return cls.new_unchecked(array)
 
     @classmethod
-    def from_euler_angles(cls, xyz: Union[List[List[float]], np.ndarray]) -> 'Rotation3':
-        if isinstance(xyz, list):
-            if len(xyz) != 3:
-                raise ValueError("List must contain exactly three numbers.")
-        elif isinstance(xyz, np.ndarray):
-            if xyz.shape != (3,):
-                raise ValueError("Array must contain exactly three numbers.")
-        else:
-            raise TypeError("Input must be either a list of three numbers or a numpy array of three numbers.")
-
-        roll, pitch, yaw = xyz
+    def from_euler_angles(cls, xyz: V3) -> 'Rotation3':
+        roll, pitch, yaw = xyz.array
 
         R_x = np.array([
             [1, 0, 0],
@@ -96,6 +87,11 @@ class Rotation3(M3):
         return cls(rotation_matrix)
 
     @classmethod
+    def from_scaled_axis(cls, scaled_axis: V3) -> 'Rotation3':
+        n = scaled_axis.norm()
+        return Rotation3.from_axis_angle(scaled_axis, n)
+
+    @classmethod
     def from_look_at(cls, look_at_vector: V3, axis: V3) -> 'Rotation3':
         look_at_vector = look_at_vector.normalize()
         axis = axis.normalize()
@@ -105,7 +101,7 @@ class Rotation3(M3):
 
         return Rotation3.from_axis_angle(rotation_axis, angle)
 
-    def to_euler_angles(self) -> list[float | Any]:
+    def to_euler_angles(self) -> V3:
         m = self.array
         if m[2, 0] < 1:
             if m[2, 0] > -1:
@@ -120,7 +116,7 @@ class Rotation3(M3):
             pitch = -np.pi / 2
             roll = np.arctan2(-m[1, 2], m[1, 1])
             yaw = 0
-        return [roll, pitch, yaw]
+        return V3([roll, pitch, yaw])
 
     def inverse(self) -> 'Rotation3':
         return self.new_unchecked(self.array.T)

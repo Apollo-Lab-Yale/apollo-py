@@ -84,16 +84,7 @@ class UnitQuaternion(Quaternion):
         return out
 
     @classmethod
-    def from_euler_angles(cls, xyz: Union[List[float], np.ndarray]) -> 'UnitQuaternion':
-        if isinstance(xyz, list):
-            if len(xyz) != 3:
-                raise ValueError("List must contain exactly three numbers.")
-        elif isinstance(xyz, np.ndarray):
-            if xyz.shape != (3,):
-                raise ValueError("Array must contain exactly three numbers.")
-        else:
-            raise TypeError("Input must be either a list of three numbers or a numpy array of three numbers.")
-
+    def from_euler_angles(cls, xyz: V3) -> 'UnitQuaternion':
         cy = np.cos(xyz[2] * 0.5)
         sy = np.sin(xyz[2] * 0.5)
         cp = np.cos(xyz[1] * 0.5)
@@ -107,6 +98,24 @@ class UnitQuaternion(Quaternion):
         z = cr * cp * sy - sr * sp * cy
 
         return cls([w, x, y, z])
+
+    @classmethod
+    def from_axis_angle(cls, axis: V3, angle: float) -> 'UnitQuaternion':
+        scaled_axis = axis / axis.norm()
+        scaled_axis = scaled_axis * angle
+        return UnitQuaternion.from_scaled_axis(scaled_axis)
+
+    @classmethod
+    def from_scaled_axis(cls, scaled_axis: V3) -> 'UnitQuaternion':
+        norm = scaled_axis.norm()
+        if norm < 1e-8:
+            return cls.new_unchecked([1.0, 0.0, 0.0, 0.0])
+
+        half_angle = norm / 2.0
+        sin_half_angle = np.sin(half_angle)
+        cos_half_angle = np.cos(half_angle)
+
+        return cls([cos_half_angle, *(sin_half_angle * scaled_axis / norm)])
 
     def inverse(self) -> 'UnitQuaternion':
         return self.conjugate()

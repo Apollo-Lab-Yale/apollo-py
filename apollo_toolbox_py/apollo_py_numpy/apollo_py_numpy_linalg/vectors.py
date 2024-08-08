@@ -38,6 +38,9 @@ class V:
     def __mul__(self, scalar):
         return V(self.array * scalar)
 
+    def __rmul__(self, scalar):
+        return V(self.array * scalar)
+
     def __truediv__(self, scalar):
         if scalar == 0:
             raise ValueError("Division by zero is not allowed.")

@@ -10,9 +10,30 @@ __all__ = ['LieGroupISE3', 'LieAlgISE3']
 
 
 class LieGroupISE3(IsometryMatrix3):
+    @staticmethod
+    def get_lie_alg_type() -> type:
+        return LieAlgISE3
+
+    @classmethod
+    def from_isometry_matrix3(cls, isometry: 'IsometryMatrix3') -> 'LieGroupISE3':
+        rotation = isometry.rotation
+        translation = isometry.translation
+        return cls(rotation, translation)
+
     @classmethod
     def identity(cls) -> 'LieGroupISE3':
         return LieGroupISE3(Rotation3.new_unchecked(np.identity(3)), V3([0, 0, 0]))
+
+    def group_operator(self, other: 'LieGroupISE3') -> 'LieGroupISE3':
+        return LieGroupISE3.from_isometry_matrix3(self @ other)
+
+    @classmethod
+    def from_scaled_axis(cls, scaled_axis: V3, translation: V3) -> 'LieGroupISE3':
+        return LieGroupISE3.from_isometry_matrix3(IsometryMatrix3(Rotation3.from_scaled_axis(scaled_axis), translation))
+
+    @classmethod
+    def from_euler_angles(cls, euler_angles: V3, translation: V3) -> 'LieGroupISE3':
+        return LieGroupISE3.from_isometry_matrix3(IsometryMatrix3(Rotation3.from_euler_angles(euler_angles), translation))
 
     def ln(self) -> 'LieAlgISE3':
         a_mat = LieGroupSO3.new_unchecked(self.rotation.array).ln()

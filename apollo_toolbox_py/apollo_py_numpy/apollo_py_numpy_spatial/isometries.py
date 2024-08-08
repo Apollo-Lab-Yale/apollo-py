@@ -11,6 +11,14 @@ class Isometry3:
         self.rotation = q
         self.translation = v
 
+    @classmethod
+    def from_scaled_axis(cls, scaled_axis: V3, translation: V3) -> 'Isometry3':
+        return Isometry3(UnitQuaternion.from_scaled_axis(scaled_axis), translation)
+
+    @classmethod
+    def from_euler_angles(cls, euler_angles: V3, translation: V3) -> 'Isometry3':
+        return Isometry3(UnitQuaternion.from_euler_angles(euler_angles), translation)
+
     def map_point(self, v: V3) -> 'V3':
         return V3(self.rotation.map_point(v).array + self.translation.array)
 
@@ -33,6 +41,14 @@ class IsometryMatrix3:
     def __init__(self, r: Rotation3, v: V3):
         self.rotation = r
         self.translation = v
+
+    @classmethod
+    def from_scaled_axis(cls, scaled_axis: V3, translation: V3) -> 'IsometryMatrix3':
+        return IsometryMatrix3(Rotation3.from_scaled_axis(scaled_axis), translation)
+
+    @classmethod
+    def from_euler_angles(cls, euler_angles: V3, translation: V3) -> 'IsometryMatrix3':
+        return IsometryMatrix3(Rotation3.from_euler_angles(euler_angles), translation)
 
     def map_point(self, v: V3) -> 'V3':
         return V3(self.rotation.map_point(v).array + self.translation.array)
