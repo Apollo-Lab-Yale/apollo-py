@@ -1,4 +1,6 @@
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.resources_directories import ResourcesRootDirectory
+from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.mesh_modules.utils import \
+    recover_full_mesh_path_bufs_from_relative_mesh_paths_options
 from apollo_toolbox_py.apollo_py.path_buf import PathBufPyWrapper
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3, V
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.chain_numpy import ChainNumpy
@@ -12,9 +14,6 @@ r = ResourcesRootDirectory(p)
 s = r.get_subdirectory('ur5')
 chain = ChainNumpy(s)
 
-print(chain.urdf_module.joints[1].joint_type)
-
-res = chain.fk(V([0., 0., 0., 0., 0., 0.]), LieGroupISE3q)
-print(res[0].get_rotation())
-print(res[0].get_translation())
+res = chain.convex_hull_meshes_module.recover_full_glb_path_bufs(r)
+print(res)
 
