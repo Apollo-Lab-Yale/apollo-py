@@ -14,5 +14,9 @@ r = ResourcesRootDirectory(p)
 s = r.get_subdirectory('ur5')
 chain = ChainNumpy(s)
 
-res = chain.fk(V([1., 2., 3., 4., 5., 6.]))
-print(res)
+# res = chain.fk(V([1., 2., 3., 4., 5., 6.]), LieGroupISE3)
+# print(res)
+
+i = LieGroupISE3.from_euler_angles(V3([1,2,3]), V3([1,2,3]))
+print(i)
+print(i.inverse().inverse())

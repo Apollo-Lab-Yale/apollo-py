@@ -101,6 +101,9 @@ class Rotation3(M3):
 
         return Rotation3.from_axis_angle(rotation_axis, angle)
 
+    def transpose(self) -> 'Rotation3':
+        return Rotation3(self.array.T)
+
     def to_euler_angles(self) -> V3:
         m = self.array
         if m[2, 0] < 1:

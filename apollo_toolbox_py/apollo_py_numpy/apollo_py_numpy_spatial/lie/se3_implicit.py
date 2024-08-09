@@ -54,6 +54,14 @@ class LieGroupISE3(IsometryMatrix3):
 
         return LieAlgISE3(M3(a_mat.array), b)
 
+    def inverse(self) -> 'LieGroupISE3':
+        new_rotation = self.rotation.transpose()
+        new_translation = new_rotation.map_point(-self.translation)
+        return LieGroupISE3(new_rotation, new_translation)
+
+    def displacement(self, other: 'LieGroupISE3') -> 'LieGroupISE3':
+        return self.inverse().group_operator(other)
+
     def __repr__(self) -> str:
         return f"LieGroupISE3(\n  rotation: \n{np.array2string(self.rotation.array)},\n  ----- \n  translation: {np.array2string(self.translation.array)}\n)"
 

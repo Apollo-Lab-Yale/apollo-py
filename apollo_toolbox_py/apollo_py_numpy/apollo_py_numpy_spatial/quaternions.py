@@ -37,7 +37,7 @@ class Quaternion:
 
     def conjugate(self) -> 'Quaternion':
         w, x, y, z = self.array
-        return Quaternion([w, -x, -y, -z])
+        return self.__class__([w, -x, -y, -z])
 
     def inverse(self) -> 'Quaternion':
         conjugate = self.conjugate()

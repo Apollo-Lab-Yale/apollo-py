@@ -23,31 +23,34 @@ class V:
         return np.linalg.norm(self.array, ord=ord)
 
     def normalize(self):
-        return type(self)(self.array / self.norm())
+        return self.__class__(self.array / self.norm())
 
     def __add__(self, other):
         if isinstance(other, V):
             other = other.array
-        return V(self.array + other)
+        return self.__class__(self.array + other)
 
     def __sub__(self, other):
         if isinstance(other, V):
             other = other.array
-        return V(self.array - other)
+        return self.__class__(self.array - other)
 
     def __mul__(self, scalar):
-        return V(self.array * scalar)
+        return self.__class__(self.array * scalar)
 
     def __rmul__(self, scalar):
-        return V(self.array * scalar)
+        return self.__class__(self.array * scalar)
+
+    def __neg__(self):
+        return self.__class__(-self.array)
 
     def __truediv__(self, scalar):
         if scalar == 0:
             raise ValueError("Division by zero is not allowed.")
-        return V(self.array / scalar)
+        return self.__class__(self.array / scalar)
 
     def __rtruediv__(self, scalar):
-        return V(scalar / self.array)
+        return self.__class__(scalar / self.array)
 
     def magnitude(self):
         return np.linalg.norm(self.array)
@@ -56,7 +59,7 @@ class V:
         norm = self.norm()
         if norm == 0:
             raise ValueError("Zero vector has no direction.")
-        return V(self.array / norm)
+        return self.__class__(self.array / norm)
 
     def __repr__(self) -> str:
         return f"V(\n{np.array2string(self.array)}\n)"

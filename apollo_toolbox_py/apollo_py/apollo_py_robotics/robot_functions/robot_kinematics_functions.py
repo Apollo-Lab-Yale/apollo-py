@@ -1,9 +1,27 @@
 __all__ = ['RobotKinematicFunctions']
 
+from typing import Union, TypeVar, Type, List
+
+from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.chain_module import ApolloChainModule
+from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.dof_module import ApolloDOFModule
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3 as V3Numpy, V6 as V6Numpy, V as VNumpy
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.robot_runtime_modules.urdf_numpy_module import \
+    ApolloURDFNumpyModule
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import LieGroupISE3
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
+
+U = TypeVar('U', bound=Union[ApolloURDFNumpyModule])
+LT = TypeVar('LT', bound=Union[Type[LieGroupISE3q], Type[LieGroupISE3]])
+L = TypeVar('L', bound=Union[LieGroupISE3q, LieGroupISE3])
+V3 = TypeVar('V3', bound=Union[V3Numpy])
+V6 = TypeVar('V6', bound=Union[V6Numpy])
+V = TypeVar('V', bound=Union[VNumpy])
+
 
 class RobotKinematicFunctions:
     @staticmethod
-    def fk(state, urdf_module, chain_module, dof_module, lie_group_type: type, vector3_type: type, vector6_type: type):
+    def fk(state: V, urdf_module: U, chain_module: ApolloChainModule, dof_module: ApolloDOFModule,
+           lie_group_type: LT, vector3_type: V3, vector6_type: V6) -> List[L]:
         links = urdf_module.links
         joints = urdf_module.joints
         kinematic_hierarchy = chain_module.kinematic_hierarchy
@@ -36,8 +54,25 @@ class RobotKinematicFunctions:
         return out
 
     @staticmethod
-    def get_joint_variable_transform(joint_type: str, joint_axis, joint_dofs, lie_group_type: type, vector3_type: type,
-                                     vector6_type: type):
+    def reverse_of_fk(link_frames: List[L], urdf_module: U, chain_module: ApolloChainModule,
+                      dof_module: ApolloDOFModule,
+                      lie_group_type: LT, vector3_type: V3, vector6_type: V6) -> V:
+        out = V(dof_module.num_dofs * [0.0])
+
+        for joint_in_chain in chain_module.joints_in_chain:
+            joint_idx = joint_in_chain.joint_idx
+            parent_link_idx = joint_in_chain.parent_link_idx
+            child_link_idx = joint_in_chain.child_link_idx
+            joint = urdf_module.joints[joint_idx]
+            constant_transform = joint.origin.get_pose_from_lie_group_type(lie_group_type)
+            joint_type = joint.joint_type
+            dof_idxs = dof_module.joint_idx_to_dof_idxs_mapping[joint_idx]
+
+        return out
+
+    @staticmethod
+    def get_joint_variable_transform(joint_type: str, joint_axis, joint_dofs, lie_group_type: LT, vector3_type: V3,
+                                     vector6_type: V6):
         if joint_type == 'Revolute':
             assert len(joint_dofs) == 1
             sa = joint_dofs[0] * joint_axis
