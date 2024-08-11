@@ -79,10 +79,10 @@ class BlenderMeshLoader:
             return
         ext = split[-1]
         if ext == 'stl' or ext == 'STL':
-            BlenderMeshLoader.import_stl(object_name, filepath, collection_name)
+            return BlenderMeshLoader.import_stl(object_name, filepath, collection_name)
         elif ext == 'obj' or ext == 'OBJ':
-            BlenderMeshLoader.import_obj(object_name, filepath, collection_name)
+            return BlenderMeshLoader.import_obj(object_name, filepath, collection_name)
         elif ext == 'dae' or ext == 'DAE':
-            BlenderMeshLoader.import_dae(object_name, filepath, collection_name)
+            return BlenderMeshLoader.import_dae(object_name, filepath, collection_name)
         elif ext == 'glb' or ext == 'gltf' or ext == 'GLB' or ext == 'GLTF':
-            BlenderMeshLoader.import_glb(object_name, filepath, collection_name)
+            return BlenderMeshLoader.import_glb(object_name, filepath, collection_name)

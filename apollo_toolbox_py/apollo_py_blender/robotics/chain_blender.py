@@ -52,21 +52,48 @@ class ChainBlender:
                 parent = ChainBlender.get_link_signature(chain_index, parent_idx)
                 set_parent(child, parent)
 
-        paths1 = chain.plain_meshes_module.recover_full_glb_path_bufs(r)
         blender_objects_plain_meshes_glb = []
+        blender_objects_plain_meshes_obj = []
+        blender_objects_convex_decomposition_glb = []
+        blender_objects_convex_decomposition_obj = []
 
-        for link_idx, frame in enumerate(fk_res):
-            if paths1[link_idx] is not None:
-                path = paths1[link_idx]
+        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.plain_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'plain_meshes_glb', blender_objects_plain_meshes_glb)
+        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.plain_meshes_module.recover_full_obj_path_bufs(r), collection_name, 'plain_meshes_obj', blender_objects_plain_meshes_obj)
+        ChainBlender._spawn_link_meshes_lists(chain, chain_index, chain.convex_decomposition_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'convex_decomposition_meshes_glb', blender_objects_convex_decomposition_glb)
+        ChainBlender._spawn_link_meshes_lists(chain, chain_index, chain.convex_decomposition_meshes_module.recover_full_obj_path_bufs(r), collection_name, 'convex_decomposition_meshes_obj', blender_objects_convex_decomposition_obj)
+
+        return out
+
+    @staticmethod
+    def _spawn_link_meshes_options(chain, chain_index, file_paths, collection_name, suffix, blender_objects_list):
+        for link_idx, path in enumerate(file_paths):
+            tmp = []
+            if path is not None:
                 link_name = chain.urdf_module.links[link_idx].name
-                blender_object = BlenderMeshLoader.import_glb(link_name, path.to_string(), collection_name)
-                blender_objects_plain_meshes_glb.append(blender_object)
+                mesh_name = link_name + '_' + suffix
+                blender_object = BlenderMeshLoader.import_mesh_file(mesh_name, path.to_string(), collection_name)
+                tmp.append(blender_object)
                 parent_name = ChainBlender.get_link_signature(chain_index, link_idx)
                 BlenderTransformUtils.copy_location_and_rotation(parent_name, blender_object)
                 set_parent(blender_object, parent_name)
                 move_object_to_collection(blender_object, collection_name)
 
-        return out
+            blender_objects_list.append(tmp)
+
+    @staticmethod
+    def _spawn_link_meshes_lists(chain, chain_index, file_paths, collection_name, suffix, blender_objects_list):
+        for link_idx, file_path_list in enumerate(file_paths):
+            tmp = []
+            for subcomponent_idx, path in enumerate(file_path_list):
+                link_name = chain.urdf_module.links[link_idx].name
+                mesh_name = link_name + '_' + str(subcomponent_idx) + '_' + suffix
+                blender_object = BlenderMeshLoader.import_mesh_file(mesh_name, path.to_string(), collection_name)
+                tmp.append(blender_object)
+                parent_name = ChainBlender.get_link_signature(chain_index, link_idx)
+                BlenderTransformUtils.copy_location_and_rotation(parent_name, blender_object)
+                set_parent(blender_object, parent_name)
+                move_object_to_collection(blender_object, collection_name)
+            blender_objects_list.append(tmp)
 
     @staticmethod
     def find_next_available_chain_index() -> int:
