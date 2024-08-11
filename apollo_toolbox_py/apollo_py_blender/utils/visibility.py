@@ -4,10 +4,10 @@ import bpy
 __all__ = ['set_visibility']
 
 
-def set_visibility(object: bpy.types.Object, visible):
+def set_visibility(blender_object: bpy.types.Object, visible):
     if visible:
-        unhide_in_viewport(object)
-        unhide_in_render(object)
+        unhide_in_viewport(blender_object)
+        unhide_in_render(blender_object)
     else:
-        hide_in_viewport(object)
-        hide_in_render(object)
+        hide_in_viewport(blender_object)
+        hide_in_render(blender_object)

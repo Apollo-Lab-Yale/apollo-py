@@ -15,7 +15,7 @@ class LieGroupSO3(Rotation3):
     def ln(self) -> 'LieAlgSO3':
         m = self.array
         trace = np.trace(m)
-        beta = np.arccos((trace - 1) / 2.0)
+        beta = np.arccos(max(min((trace - 1) / 2.0, 1.0), -1.0))
 
         if np.isclose(beta, 0):
             f = 0.5 + (beta ** 2 / 12.0) + (7.0 * beta ** 4 / 720.0)

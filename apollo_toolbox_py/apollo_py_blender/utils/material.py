@@ -36,16 +36,16 @@ class ApolloBlenderSimpleMaterial:
 
         self.input_node.inputs[0].default_value = default_color
 
-    def apply_material_to_object(self, object: bpy.types.Object) -> None:
+    def apply_material_to_object(self, blender_object: bpy.types.Object):
         """
         Apply this material to a Blender object.
 
         Parameters:
         - object: The Blender object to which the material is applied.
         """
-        object.active_material = self.material
+        blender_object.active_material = self.material
 
-    def set_color(self, color: Tuple[float, float, float, float]) -> None:
+    def set_color(self, color: Tuple[float, float, float, float]):
         """
         Set the color of the material.
 
@@ -54,7 +54,7 @@ class ApolloBlenderSimpleMaterial:
         """
         self.input_node.inputs[0].default_value = color
 
-    def set_alpha(self, alpha: float) -> None:
+    def set_alpha(self, alpha: float):
         """
         Set the alpha (transparency) of the material.
 
@@ -64,13 +64,13 @@ class ApolloBlenderSimpleMaterial:
         if self.material_type == 'Principled BSDF':
             self.input_node.inputs[21].default_value = alpha
 
-    def reset_color(self) -> None:
+    def reset_color(self):
         """
         Reset the color of the material to the default color.
         """
         self.input_node.inputs[0].default_value = self.default_color
 
-    def keyframe_material(self, frame: int) -> None:
+    def keyframe_material(self, frame: int):
         """
         Insert keyframes for the material properties at the specified frame.
 

@@ -106,18 +106,18 @@ class Rotation3(M3):
 
     def to_euler_angles(self) -> V3:
         m = self.array
-        if m[2, 0] < 1:
-            if m[2, 0] > -1:
-                pitch = np.arcsin(-m[2, 0])
-                roll = np.arctan2(m[2, 1], m[2, 2])
-                yaw = np.arctan2(m[1, 0], m[0, 0])
+        if m[2][0] < 1:
+            if m[2][0] > -1:
+                pitch = np.arcsin(-m[2][0])
+                roll = np.arctan2(m[2][1], m[2][2])
+                yaw = np.arctan2(m[1][0], m[0][0])
             else:
                 pitch = np.pi / 2
-                roll = np.arctan2(-m[1, 2], m[1, 1])
+                roll = np.arctan2(-m[1][2], m[1][1])
                 yaw = 0
         else:
             pitch = -np.pi / 2
-            roll = np.arctan2(-m[1, 2], m[1, 1])
+            roll = np.arctan2(-m[1][2], m[1][1])
             yaw = 0
         return V3([roll, pitch, yaw])
 

@@ -14,9 +14,10 @@ U = TypeVar('U', bound=Union[ApolloURDFNumpyModule])
 LT = TypeVar('LT', bound=Union[Type[LieGroupISE3q], Type[LieGroupISE3]])
 L = TypeVar('L', bound=Union[LieGroupISE3q, LieGroupISE3])
 V3 = TypeVar('V3', bound=Union[V3Numpy])
+V3T = TypeVar('V3T', bound=Union[Type[V3Numpy]])
 V6 = TypeVar('V6', bound=Union[V6Numpy])
 V = TypeVar('V', bound=Union[VNumpy])
-
+VT = TypeVar('VT', bound=Union[Type[VNumpy]])
 
 class RobotKinematicFunctions:
     @staticmethod
@@ -56,8 +57,8 @@ class RobotKinematicFunctions:
     @staticmethod
     def reverse_of_fk(link_frames: List[L], urdf_module: U, chain_module: ApolloChainModule,
                       dof_module: ApolloDOFModule,
-                      lie_group_type: LT, vector3_type: V3, vector6_type: V6) -> V:
-        out = V(dof_module.num_dofs * [0.0])
+                      lie_group_type: LT, vec_type: VT, vector3_type: V3) -> V:
+        out = vec_type(dof_module.num_dofs * [0.0])
 
         for joint_in_chain in chain_module.joints_in_chain:
             joint_idx = joint_in_chain.joint_idx
@@ -67,6 +68,37 @@ class RobotKinematicFunctions:
             constant_transform = joint.origin.get_pose_from_lie_group_type(lie_group_type)
             joint_type = joint.joint_type
             dof_idxs = dof_module.joint_idx_to_dof_idxs_mapping[joint_idx]
+            axis = joint.axis.xyz
+
+            t_variable = constant_transform.inverse().group_operator(link_frames[parent_link_idx].inverse()).group_operator(link_frames[child_link_idx])
+            t_variable_vee = t_variable.ln().vee()
+
+            if joint_type == 'Revolute' or joint_type == 'Continuous':
+                value = t_variable_vee.norm()
+                tmp = vector3_type([t_variable_vee[0], t_variable_vee[1], t_variable_vee[2]])
+                d = axis.dot(tmp)
+                if issubclass(lie_group_type, LieGroupISE3q):
+                    value *= 2.0
+                if d < 0.0:
+                    value = -value
+                out[dof_idxs[0]] = value
+            elif joint_type == 'Prismatic':
+                value = t_variable_vee.norm()
+                tmp = vector3_type([t_variable_vee[3], t_variable_vee[4], t_variable_vee[5]])
+                d = axis.dot(tmp)
+                if d < 0.0:
+                    value = -value
+                out[dof_idxs[0]] = value
+            elif joint_type == 'Floating':
+                for i, x in enumerate(dof_idxs):
+                    out[x] = t_variable_vee[i]
+            elif joint_type == 'Planar':
+                out[dof_idxs[0]] = t_variable_vee[4]
+                out[dof_idxs[1]] = t_variable_vee[5]
+            elif joint_type == 'Spherical':
+                out[dof_idxs[0]] = t_variable_vee[0]
+                out[dof_idxs[1]] = t_variable_vee[1]
+                out[dof_idxs[2]] = t_variable_vee[2]
 
         return out
 

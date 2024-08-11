@@ -15,7 +15,7 @@ class LieGroupH1(UnitQuaternion):
 
     def ln(self) -> 'LieAlgH1':
         w, x, y, z = self.array
-        acos = np.acos(w)
+        acos = np.acos(min(w, 1.0))
         if acos == 0.0:
             return LieAlgH1([0, 0, 0, 0])
         else:

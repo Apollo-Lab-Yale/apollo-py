@@ -24,6 +24,14 @@ class ResourcesRootDirectory:
     def __init__(self, directory: PathBufPyWrapper):
         self.directory = directory
 
+    @staticmethod
+    def new_from_default_apollo_robots_dir() -> 'ResourcesRootDirectory':
+        return ResourcesRootDirectory(PathBufPyWrapper.new_from_default_apollo_robots_dir())
+
+    @staticmethod
+    def new_from_default_apollo_environments_dir() -> 'ResourcesRootDirectory':
+        return ResourcesRootDirectory(PathBufPyWrapper.new_from_default_apollo_environments_dir())
+
     def get_subdirectory(self, name: str) -> 'ResourcesSubDirectory':
         directory = self.directory.append(name)
         return ResourcesSubDirectory(name, self.directory, directory)

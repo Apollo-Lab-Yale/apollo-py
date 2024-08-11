@@ -13,10 +13,10 @@ from apollo_toolbox_py.apollo_py_blender.utils.visibility import set_visibility
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
 
-__all__ = ['ApolloBlenderLine', 'ApolloBlenderLineSet']
+__all__ = ['BlenderLine', 'BlenderLineSet']
 
 
-class ApolloBlenderLine:
+class BlenderLine:
     """
     Class to create and manage a line object in Blender.
     """
@@ -26,7 +26,7 @@ class ApolloBlenderLine:
         Initialize the ApolloBlenderLine object with default values.
         """
         self.radius: Optional[float] = None
-        self.line_mesh: Optional[bpy.types.Object] = None
+        self.blender_object: Optional[bpy.types.Object] = None
         self.name: Optional[str] = None
         self.length: float = 2.0
 
@@ -37,7 +37,7 @@ class ApolloBlenderLine:
             radius: float = 0.01, vertices: int = 6,
             name: Optional[str] = None, collection_name: str = 'Lines',
             material: Optional[ApolloBlenderSimpleMaterial] = None
-    ) -> 'ApolloBlenderLine':
+    ) -> 'BlenderLine':
         """
         Static method to create a new line object in Blender.
 
@@ -53,7 +53,7 @@ class ApolloBlenderLine:
         Returns:
         - ApolloBlenderLine: A new instance of ApolloBlenderLine.
         """
-        line = ApolloBlenderLine()
+        line = BlenderLine()
         line.radius = radius
         line.name = name
 
@@ -69,24 +69,25 @@ class ApolloBlenderLine:
         if collection_name is not None:
             move_object_to_collection(object, collection_name)
 
-        line.line_mesh = object
+        line.blender_object = object
+        line.name = line.blender_object.name
 
         line.change_pose(start_point, end_point)
 
         if material is not None:
-            material.apply_material_to_object(line.line_mesh)
+            material.apply_material_to_object(line.blender_object)
 
         return line
 
     @staticmethod
     def spawn_new_copy(
-            line: 'ApolloBlenderLine',
+            line: 'BlenderLine',
             start_point: Union[Tuple[float, float, float], List[float]],
             end_point: Union[Tuple[float, float, float], List[float]],
             radius: float = 0.01, name: Optional[str] = None,
             collection_name: str = 'Lines',
             material: Optional[ApolloBlenderSimpleMaterial] = None
-    ) -> 'ApolloBlenderLine':
+    ) -> 'BlenderLine':
         """
         Static method to create a copy of an existing line object in Blender.
 
@@ -102,19 +103,19 @@ class ApolloBlenderLine:
         Returns:
         - ApolloBlenderLine: A new instance of ApolloBlenderLine.
         """
-        new_mesh = copy_object(line.line_mesh, collection_name)
+        new_mesh = copy_object(line.blender_object, collection_name)
         if name is not None:
             rename_object(new_mesh, name)
-        out_line = ApolloBlenderLine()
+        out_line = BlenderLine()
         out_line.radius = radius
-        out_line.line_mesh = new_mesh
+        out_line.blender_object = new_mesh
         out_line.name = name
         out_line.length = line.length
 
         out_line.change_pose(start_point, end_point)
 
         if material is not None:
-            material.apply_material_to_object(out_line.line_mesh)
+            material.apply_material_to_object(out_line.blender_object)
 
         return out_line
 
@@ -138,9 +139,9 @@ class ApolloBlenderLine:
         r = Rotation3.from_look_at(V3([d[0], d[1], d[2]]), V3([0, 0, 1]))
         euler_angles = r.to_euler_angles()
 
-        scale_along_local_z((1.0 / self.length) * length, self.line_mesh)
-        location(self.line_mesh, [center[0], center[1], center[2]])
-        rotation(self.line_mesh, [euler_angles[0], euler_angles[1], euler_angles[2]])
+        scale_along_local_z((1.0 / self.length) * length, self.blender_object)
+        location(self.blender_object, [center[0], center[1], center[2]])
+        rotation(self.blender_object, [euler_angles[0], euler_angles[1], euler_angles[2]])
 
         self.length = length
 
@@ -151,13 +152,13 @@ class ApolloBlenderLine:
         Parameters:
         - radius: New radius of the line.
         """
-        scale_along_local_x((1.0 / self.radius) * radius, self.line_mesh)
-        scale_along_local_y((1.0 / self.radius) * radius, self.line_mesh)
+        scale_along_local_x((1.0 / self.radius) * radius, self.blender_object)
+        scale_along_local_y((1.0 / self.radius) * radius, self.blender_object)
 
         self.radius = radius
 
 
-class ApolloBlenderLineSet:
+class BlenderLineSet:
     """
     Class to manage a set of line objects in Blender.
     """
@@ -178,10 +179,10 @@ class ApolloBlenderLineSet:
         - default_color: Default color of the lines.
         - linked_material_for_each_line: Whether each line has a linked material or not.
         """
-        self.lines: List[ApolloBlenderLine] = []
+        self.lines: List[BlenderLine] = []
         self.materials: List[ApolloBlenderSimpleMaterial] = []
 
-        line_to_copy: ApolloBlenderLine = ApolloBlenderLine.spawn_new([0, 0, 0], [0, 0, 1], collection_name=None)
+        line_to_copy: BlenderLine = BlenderLine.spawn_new([0, 0, 0], [0, 0, 1], collection_name=None)
 
         if default_color is None:
             default_color = (0.2, 0.2, 0.2, 1)
@@ -192,25 +193,25 @@ class ApolloBlenderLineSet:
         base_material.keyframe_material(0)
 
         for i in range(num_lines):
-            line_copy: ApolloBlenderLine = ApolloBlenderLine.spawn_new_copy(
+            line_copy: BlenderLine = BlenderLine.spawn_new_copy(
                 line_to_copy, [0, 0, 0], [0, 0, 1], collection_name=collection_name
             )
             if linked_material_for_each_line:
-                base_material.apply_material_to_object(line_copy.line_mesh)
+                base_material.apply_material_to_object(line_copy.blender_object)
                 self.materials.append(base_material)
             else:
                 new_material: ApolloBlenderSimpleMaterial = ApolloBlenderSimpleMaterial(
                     material_type=material_type, default_color=default_color
                 )
-                new_material.apply_material_to_object(line_copy.line_mesh)
+                new_material.apply_material_to_object(line_copy.blender_object)
                 new_material.keyframe_material(0)
                 self.materials.append(new_material)
 
-            set_visibility(line_copy.line_mesh, False)
-            KeyframeUtils.keyframe_visibility(line_copy.line_mesh, 0)
+            set_visibility(line_copy.blender_object, False)
+            KeyframeUtils.keyframe_visibility(line_copy.blender_object, 0)
             self.lines.append(line_copy)
 
-        delete_object(line_to_copy.line_mesh)
+        delete_object(line_to_copy.blender_object)
 
         self.per_frame_next_available_line: List[int] = []
 
@@ -236,16 +237,16 @@ class ApolloBlenderLineSet:
             print(f'WARNING: Not enough lines at frame {frame} to draw the given line.')
             return
 
-        curr_line: ApolloBlenderLine = self.lines[self.per_frame_next_available_line[frame]]
+        curr_line: BlenderLine = self.lines[self.per_frame_next_available_line[frame]]
         curr_line.change_pose(start_point, end_point)
         curr_line.change_radius(radius)
-        set_visibility(curr_line.line_mesh, True)
+        set_visibility(curr_line.blender_object, True)
 
-        KeyframeUtils.keyframe_transform(curr_line.line_mesh, frame)
-        KeyframeUtils.keyframe_visibility(curr_line.line_mesh, frame)
+        KeyframeUtils.keyframe_transform(curr_line.blender_object, frame)
+        KeyframeUtils.keyframe_visibility(curr_line.blender_object, frame)
 
-        set_visibility(curr_line.line_mesh, False)
-        KeyframeUtils.keyframe_visibility(curr_line.line_mesh, frame + 1)
+        set_visibility(curr_line.blender_object, False)
+        KeyframeUtils.keyframe_visibility(curr_line.blender_object, frame + 1)
 
         if color is not None:
             material: ApolloBlenderSimpleMaterial = self.materials[self.per_frame_next_available_line[frame]]

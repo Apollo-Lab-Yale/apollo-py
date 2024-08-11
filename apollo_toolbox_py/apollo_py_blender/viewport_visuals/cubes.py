@@ -11,10 +11,10 @@ from apollo_toolbox_py.apollo_py_blender.utils.keyframes import KeyframeUtils
 from apollo_toolbox_py.apollo_py_blender.utils.material import ApolloBlenderSimpleMaterial
 from apollo_toolbox_py.apollo_py_blender.utils.visibility import set_visibility
 
-__all__ = ['ApolloBlenderCube', 'ApolloBlenderCubeSet']
+__all__ = ['BlenderCube', 'BlenderCubeSet']
 
 
-class ApolloBlenderCube:
+class BlenderCube:
     """
     Class to create and manage a cube object in Blender.
     """
@@ -23,7 +23,7 @@ class ApolloBlenderCube:
         """
         Initialize the Cube object with default values.
         """
-        self.object: Optional[bpy.types.Object] = None
+        self.blender_object: Optional[bpy.types.Object] = None
         self.center: Optional[Tuple[float, float, float]] = None
         self.local_x_scale: float = 1.0
         self.local_y_scale: float = 1.0
@@ -39,7 +39,7 @@ class ApolloBlenderCube:
             material: Optional[ApolloBlenderSimpleMaterial] = None,
             wireframe: bool = False,
             wireframe_thickness: float = 0.01
-    ) -> 'ApolloBlenderCube':
+    ) -> 'BlenderCube':
         """
         Static method to create a new cube object in Blender.
 
@@ -61,46 +61,48 @@ class ApolloBlenderCube:
             if not exists:
                 create_collection(collection_name)
 
-        cube = ApolloBlenderCube()
+        cube = BlenderCube()
         bpy.ops.mesh.primitive_cube_add()
-        cube.object = ao()
+        cube.blender_object = ao()
         cube.center = center
-        location(cube.object, center)
-        rotation(cube.object, euler_angles)
-        scale_along_local_x(half_extents[0], cube.object)
-        scale_along_local_y(half_extents[1], cube.object)
-        scale_along_local_z(half_extents[2], cube.object)
+        location(cube.blender_object, center)
+        rotation(cube.blender_object, euler_angles)
+        scale_along_local_x(half_extents[0], cube.blender_object)
+        scale_along_local_y(half_extents[1], cube.blender_object)
+        scale_along_local_z(half_extents[2], cube.blender_object)
         cube.local_x_scale = half_extents[0]
         cube.local_y_scale = half_extents[1]
         cube.local_z_scale = half_extents[2]
 
         if name is not None:
-            rename_object(cube.object, name)
+            rename_object(cube.blender_object, name)
+
+        cube.name = cube.blender_object.name
 
         if collection_name is not None:
-            move_object_to_collection(cube.object, collection_name)
+            move_object_to_collection(cube.blender_object, collection_name)
 
         if wireframe:
-            select_object(cube.object)
-            bpy.ops.object.modifier_add(type='WIREFRAME')
-            cube.object.modifiers['Wireframe'].thickness = wireframe_thickness
+            select_object(cube.blender_object)
+            bpy.ops.blender_object.modifier_add(type='WIREFRAME')
+            cube.blender_object.modifiers['Wireframe'].thickness = wireframe_thickness
             deselect_all_objects()
 
         if material is not None:
-            material.apply_material_to_object(cube.object)
+            material.apply_material_to_object(cube.blender_object)
 
         return cube
 
     @staticmethod
     def spawn_new_copy(
-            cube: 'ApolloBlenderCube',
+            cube: 'BlenderCube',
             center: Union[Tuple[float, float, float], List[float]],
             euler_angles: Union[Tuple[float, float, float], List[float]],
             half_extents: Union[Tuple[float, float, float], List[float]],
             name: Optional[str] = None,
             collection_name: str = 'Cubes',
             material: Optional[ApolloBlenderSimpleMaterial] = None
-    ) -> 'ApolloBlenderCube':
+    ) -> 'BlenderCube':
         """
         Static method to create a copy of an existing cube object in Blender.
 
@@ -116,17 +118,17 @@ class ApolloBlenderCube:
         Returns:
         - Cube: A new instance of Cube.
         """
-        new_mesh = copy_object(cube.object, collection_name)
+        new_mesh = copy_object(cube.blender_object, collection_name)
         if name is not None:
             rename_object(new_mesh, name)
-        out_cube = ApolloBlenderCube()
+        out_cube = BlenderCube()
         out_cube.center = center
-        out_cube.object = new_mesh
+        out_cube.blender_object = new_mesh
 
         out_cube.change_pose(center, euler_angles, half_extents)
 
         if material is not None:
-            material.apply_material_to_object(out_cube.object)
+            material.apply_material_to_object(out_cube.blender_object)
 
         return out_cube
 
@@ -135,7 +137,7 @@ class ApolloBlenderCube:
             center: Union[Tuple[float, float, float], List[float]],
             euler_angles: Union[Tuple[float, float, float], List[float]],
             half_extents: Union[Tuple[float, float, float], List[float]]
-    ) -> None:
+    ):
         """
         Change the position, orientation, and scale of the cube object.
 
@@ -145,23 +147,23 @@ class ApolloBlenderCube:
         - half_extents: New half extents of the cube along each axis.
         """
         self.center = center
-        location(self.object, center)
-        rotation(self.object, euler_angles)
+        location(self.blender_object, center)
+        rotation(self.blender_object, euler_angles)
 
         rand_x = random.uniform(0.002, 0.005)
-        scale_along_local_x((half_extents[0] + rand_x) / self.local_x_scale, self.object)
+        scale_along_local_x((half_extents[0] + rand_x) / self.local_x_scale, self.blender_object)
         self.local_x_scale = (half_extents[0] + rand_x)
 
         rand_y = random.uniform(0.002, 0.005)
-        scale_along_local_y((half_extents[1] + rand_y) / self.local_y_scale, self.object)
+        scale_along_local_y((half_extents[1] + rand_y) / self.local_y_scale, self.blender_object)
         self.local_y_scale = (half_extents[1] + rand_y)
 
         rand_z = random.uniform(0.002, 0.005)
-        scale_along_local_z((half_extents[2] + rand_z) / self.local_z_scale, self.object)
+        scale_along_local_z((half_extents[2] + rand_z) / self.local_z_scale, self.blender_object)
         self.local_z_scale = (half_extents[2] + rand_z)
 
 
-class ApolloBlenderCubeSet:
+class BlenderCubeSet:
     """
     Class to manage a set of cube objects in Blender.
     """
@@ -188,12 +190,12 @@ class ApolloBlenderCubeSet:
         - wireframe: Whether to add a wireframe modifier to the cubes.
         - wireframe_thickness: Thickness of the wireframe.
         """
-        self.cubes: List[ApolloBlenderCube] = []
+        self.cubes: List[BlenderCube] = []
         self.materials: List[ApolloBlenderSimpleMaterial] = []
 
-        cube_to_copy: ApolloBlenderCube = ApolloBlenderCube.spawn_new([0, 0, 0], [0, 0, 0], [1, 1, 1],
-                                                                      collection_name=None, wireframe=wireframe,
-                                                                      wireframe_thickness=wireframe_thickness)
+        cube_to_copy: BlenderCube = BlenderCube.spawn_new([0, 0, 0], [0, 0, 0], [1, 1, 1],
+                                                          collection_name=None, wireframe=wireframe,
+                                                          wireframe_thickness=wireframe_thickness)
 
         if default_color is None:
             default_color = (0.2, 0.2, 0.2, 1)
@@ -203,23 +205,23 @@ class ApolloBlenderCubeSet:
         base_material.keyframe_material(0)
 
         for i in range(num_cubes):
-            cube_copy: ApolloBlenderCube = ApolloBlenderCube.spawn_new_copy(cube_to_copy, [0, 0, 0], [0, 0, 0],
-                                                                            [1, 1, 1], collection_name=collection_name)
+            cube_copy: BlenderCube = BlenderCube.spawn_new_copy(cube_to_copy, [0, 0, 0], [0, 0, 0],
+                                                                [1, 1, 1], collection_name=collection_name)
             if linked_material_for_each_line:
-                base_material.apply_material_to_object(cube_copy.object)
+                base_material.apply_material_to_object(cube_copy.blender_object)
                 self.materials.append(base_material)
             else:
                 new_material: ApolloBlenderSimpleMaterial = ApolloBlenderSimpleMaterial(material_type=material_type,
                                                                                         default_color=default_color)
-                new_material.apply_material_to_object(cube_copy.object)
+                new_material.apply_material_to_object(cube_copy.blender_object)
                 new_material.keyframe_material(0)
                 self.materials.append(new_material)
 
-            set_visibility(cube_copy.object, False)
-            KeyframeUtils.keyframe_visibility(cube_copy.object, 0)
+            set_visibility(cube_copy.blender_object, False)
+            KeyframeUtils.keyframe_visibility(cube_copy.blender_object, 0)
             self.cubes.append(cube_copy)
 
-        delete_object(cube_to_copy.object)
+        delete_object(cube_to_copy.blender_object)
 
         self.per_frame_next_available_cube: List[int] = []
 
@@ -231,7 +233,7 @@ class ApolloBlenderCubeSet:
             frame: int,
             color: Optional[Tuple[float, float, float, float]] = None,
             alpha: Optional[float] = None
-    ) -> None:
+    ):
         """
         Set the position, orientation, and visibility of a cube at a specific frame.
 
@@ -250,15 +252,15 @@ class ApolloBlenderCubeSet:
             print(f'WARNING: Not enough cubes at frame {frame} to draw the given cube.')
             return
 
-        curr_cube: ApolloBlenderCube = self.cubes[self.per_frame_next_available_cube[frame]]
+        curr_cube: BlenderCube = self.cubes[self.per_frame_next_available_cube[frame]]
         curr_cube.change_pose(center, euler_angles, half_extents)
-        set_visibility(curr_cube.object, True)
+        set_visibility(curr_cube.blender_object, True)
 
-        KeyframeUtils.keyframe_transform(curr_cube.object, frame)
-        KeyframeUtils.keyframe_visibility(curr_cube.object, frame)
+        KeyframeUtils.keyframe_transform(curr_cube.blender_object, frame)
+        KeyframeUtils.keyframe_visibility(curr_cube.blender_object, frame)
 
-        set_visibility(curr_cube.object, False)
-        KeyframeUtils.keyframe_visibility(curr_cube.object, frame + 1)
+        set_visibility(curr_cube.blender_object, False)
+        KeyframeUtils.keyframe_visibility(curr_cube.blender_object, frame + 1)
 
         if color is not None:
             material: ApolloBlenderSimpleMaterial = self.materials[self.per_frame_next_available_cube[frame]]
