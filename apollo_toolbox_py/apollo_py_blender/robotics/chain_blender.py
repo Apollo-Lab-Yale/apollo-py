@@ -174,6 +174,14 @@ class ChainBlender:
             add_keyframe(link_empty, 'rotation_euler', frame)
             add_keyframe(link_empty, 'location', frame)
 
+    def keyframe_discrete_trajectory(self, states: List[List[float]], starting_frame=1, state_stride=1, frame_stride=1):
+        frame = starting_frame
+        for i in range(0, len(states), state_stride):
+            state = states[i]
+            self.set_state(state)
+            self.keyframe_state(frame)
+            frame += frame_stride
+
     @staticmethod
     def _set_link_color(link_idx: int, color: tuple[float, float, float, float], blender_material_list: List[List[BlenderSimpleMaterial]], subcomponent_idxs=None):
         if subcomponent_idxs is None:
