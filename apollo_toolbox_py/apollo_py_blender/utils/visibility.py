@@ -11,3 +11,7 @@ def set_visibility(blender_object: bpy.types.Object, visible):
     else:
         hide_in_viewport(blender_object)
         hide_in_render(blender_object)
+
+    if blender_object is not None:
+        for child in blender_object.children:
+            set_visibility(child, visible)

@@ -2,7 +2,8 @@ from typing import List
 
 import bpy
 from easybpy.easybpy import collection_exists, create_collection, rename_object, ao, location, rotation, \
-    move_object_to_collection, set_parent
+    move_object_to_collection, set_parent, get_object
+from mathutils import Vector, Euler, Matrix
 
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.resources_directories import ResourcesSubDirectory, \
     ResourcesRootDirectory
@@ -11,11 +12,11 @@ __all__ = ['ChainBlender']
 
 from apollo_toolbox_py.apollo_py_blender.utils.mesh_loading import BlenderMeshLoader
 from apollo_toolbox_py.apollo_py_blender.utils.transforms import BlenderTransformUtils
+from apollo_toolbox_py.apollo_py_blender.utils.visibility import set_visibility
 
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.chain_numpy import ChainNumpy
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
-
 
 class ChainBlender:
     @classmethod
@@ -28,6 +29,7 @@ class ChainBlender:
         fk_res: List[LieGroupISE3q] = out.chain.fk(zeros_state)
 
         chain_index = ChainBlender.find_next_available_chain_index()
+        out.chain_idx = chain_index
         collection_name = 'Chain_' + str(chain_index)
         create_collection(collection_name)
 
@@ -52,15 +54,20 @@ class ChainBlender:
                 parent = ChainBlender.get_link_signature(chain_index, parent_idx)
                 set_parent(child, parent)
 
-        blender_objects_plain_meshes_glb = []
-        blender_objects_plain_meshes_obj = []
-        blender_objects_convex_decomposition_glb = []
-        blender_objects_convex_decomposition_obj = []
+        out.blender_objects_plain_meshes_glb = []
+        out.blender_objects_plain_meshes_obj = []
+        out.blender_objects_convex_hulls = []
+        out.blender_objects_convex_decomposition = []
 
-        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.plain_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'plain_meshes_glb', blender_objects_plain_meshes_glb)
-        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.plain_meshes_module.recover_full_obj_path_bufs(r), collection_name, 'plain_meshes_obj', blender_objects_plain_meshes_obj)
-        ChainBlender._spawn_link_meshes_lists(chain, chain_index, chain.convex_decomposition_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'convex_decomposition_meshes_glb', blender_objects_convex_decomposition_glb)
-        ChainBlender._spawn_link_meshes_lists(chain, chain_index, chain.convex_decomposition_meshes_module.recover_full_obj_path_bufs(r), collection_name, 'convex_decomposition_meshes_obj', blender_objects_convex_decomposition_obj)
+        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.plain_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'plain_meshes_glb', out.blender_objects_plain_meshes_glb)
+        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.plain_meshes_module.recover_full_obj_path_bufs(r), collection_name, 'plain_meshes_obj', out.blender_objects_plain_meshes_obj)
+        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.convex_hull_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'convex_hull_meshes', out.blender_objects_convex_hulls)
+        ChainBlender._spawn_link_meshes_lists(chain, chain_index, chain.convex_decomposition_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'convex_decomposition_meshes', out.blender_objects_convex_decomposition)
+
+        out.set_plain_meshes_glb_visibility(False)
+        out.set_plain_meshes_obj_visibility(False)
+        out.set_convex_hull_meshes_visibility(False)
+        out.set_convex_decomposition_meshes_visibility(True)
 
         return out
 
@@ -109,3 +116,34 @@ class ChainBlender:
     @staticmethod
     def get_link_signature(chain_index: int, link_idx: int):
         return 'chain_' + str(chain_index) + '_link_' + str(link_idx)
+
+    def pose_chain(self, state: List[float]):
+        state = V(state)
+        chain: ChainNumpy = self.chain
+        fk_res: List[LieGroupISE3q] = chain.fk(state)
+        for link_idx, frame in enumerate(fk_res):
+            l = frame.translation.array
+            r = frame.rotation.to_rotation_matrix().to_euler_angles()
+            new_location = Vector((l[0], l[1], l[2]))  # Replace x, y, z with your desired coordinates
+            new_rotation = Euler((r[0], r[1], r[2]), 'XYZ')  # Replace rx, ry, rz with your desired rotation angles in radians
+            new_matrix_world = Matrix.Translation(new_location) @ new_rotation.to_matrix().to_4x4()
+            signature = self.get_link_signature(self.chain_idx, link_idx)
+            blender_object = get_object(signature)
+            blender_object.matrix_world = new_matrix_world
+
+    def _set_meshes_visibility(self, visible: bool, list_of_objects):
+        for object_list in list_of_objects:
+            for blender_object in object_list:
+                set_visibility(blender_object, visible)
+
+    def set_plain_meshes_glb_visibility(self, visible: bool):
+        self._set_meshes_visibility(visible, self.blender_objects_plain_meshes_glb)
+
+    def set_plain_meshes_obj_visibility(self, visible: bool):
+        self._set_meshes_visibility(visible, self.blender_objects_plain_meshes_obj)
+
+    def set_convex_hull_meshes_visibility(self, visible: bool):
+        self._set_meshes_visibility(visible, self.blender_objects_convex_hulls)
+
+    def set_convex_decomposition_meshes_visibility(self, visible: bool):
+        self._set_meshes_visibility(visible, self.blender_objects_convex_decomposition)
