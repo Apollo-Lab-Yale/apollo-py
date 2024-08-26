@@ -10,15 +10,8 @@ def tester():
     c = s.to_chain_numpy()
     ch = ChainBlender.spawn(c, r)
     ch.set_state([1., 0., 0., 0., 0., 0.])
-    ch.keyframe_state(1)
-    ch.set_state([1., 1., 0., 0., 0., 0.])
-    ch.keyframe_state(10)
-    ch.set_link_plain_mesh_color(1, (1., 0., 0., 1.0))
-    ch.set_link_plain_mesh_alpha(1, 0.1)
-    ch.keyframe_plain_mesh_material(1, 1)
-    ch.set_link_plain_mesh_color(1, (0., 1., 0., 1.0))
-    ch.set_link_plain_mesh_alpha(1, 0.5)
-    ch.keyframe_plain_mesh_material(10, 1)
+    ch.set_convex_hull_meshes_visibility(True)
+    ch.set_all_links_convex_hull_mesh_alpha(0.2)
     print(ch)
     return ch
 

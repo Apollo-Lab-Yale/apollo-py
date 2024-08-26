@@ -64,13 +64,13 @@ class ChainBlender:
         out.blender_objects_convex_decomposition = []
 
         out.blender_objects_plain_meshes_obj_materials = []
-        out.blender_objects_convex_hulls_materials = []
+        out.blender_objects_convex_hull_materials = []
         out.blender_objects_convex_decomposition_materials = []
 
         ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.plain_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'plain_meshes_glb', out.blender_objects_plain_meshes_glb, [], False)
         ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.plain_meshes_module.recover_full_obj_path_bufs(r), collection_name, 'plain_meshes_obj', out.blender_objects_plain_meshes_obj, out.blender_objects_plain_meshes_obj_materials, True)
-        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.convex_hull_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'convex_hull_meshes', out.blender_objects_convex_hulls, out.blender_objects_convex_hulls_materials, True)
-        ChainBlender._spawn_link_meshes_lists(chain, chain_index, chain.convex_decomposition_meshes_module.recover_full_glb_path_bufs(r), collection_name, 'convex_decomposition_meshes', out.blender_objects_convex_decomposition, out.blender_objects_convex_decomposition_materials, True)
+        ChainBlender._spawn_link_meshes_options(chain, chain_index, chain.convex_hull_meshes_module.recover_full_obj_path_bufs(r), collection_name, 'convex_hull_meshes', out.blender_objects_convex_hulls, out.blender_objects_convex_hull_materials, True)
+        ChainBlender._spawn_link_meshes_lists(chain, chain_index, chain.convex_decomposition_meshes_module.recover_full_obj_path_bufs(r), collection_name, 'convex_decomposition_meshes', out.blender_objects_convex_decomposition, out.blender_objects_convex_decomposition_materials, True)
 
         out.set_plain_meshes_glb_visibility(False)
         out.set_plain_meshes_obj_visibility(True)
@@ -209,6 +209,69 @@ class ChainBlender:
 
     def keyframe_plain_mesh_material(self, frame: int, link_idx: int, subcomponent_idxs=None):
         ChainBlender._keyframe_link_material(frame, link_idx, self.blender_objects_plain_meshes_obj_materials, subcomponent_idxs)
+
+    def set_all_links_plain_mesh_color(self, color: tuple[float, float, float, float]):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.set_link_plain_mesh_color(i, color)
+
+    def set_all_links_plain_mesh_alpha(self, alpha: float):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.set_link_plain_mesh_alpha(i, alpha)
+
+    def keyframe_all_plain_mesh_materials(self, frame: int):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.keyframe_plain_mesh_material(frame, i)
+
+    def set_link_convex_hull_mesh_color(self, link_idx: int, color: tuple[float, float, float, float], subcomponent_idxs=None):
+        ChainBlender._set_link_color(link_idx, color, self.blender_objects_convex_hull_materials, subcomponent_idxs)
+
+    def set_link_convex_hull_mesh_alpha(self, link_idx: int, alpha: float, subcomponent_idxs=None):
+        ChainBlender._set_link_alpha(link_idx, alpha, self.blender_objects_convex_hull_materials, subcomponent_idxs)
+
+    def keyframe_convex_hull_mesh_material(self, frame: int, link_idx: int, subcomponent_idxs=None):
+        ChainBlender._keyframe_link_material(frame, link_idx, self.blender_objects_convex_hull_materials, subcomponent_idxs)
+
+    def set_all_links_convex_hull_mesh_color(self, color: tuple[float, float, float, float]):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.set_link_convex_hull_mesh_color(i, color)
+
+    def set_all_links_convex_hull_mesh_alpha(self, alpha: float):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.set_link_convex_hull_mesh_alpha(i, alpha)
+
+    def keyframe_all_convex_hull_mesh_materials(self, frame: int):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.keyframe_convex_hull_mesh_material(frame, i)
+
+    def set_link_convex_decomposition_mesh_color(self, link_idx: int, color: tuple[float, float, float, float], subcomponent_idxs=None):
+        ChainBlender._set_link_color(link_idx, color, self.blender_objects_convex_decomposition_materials, subcomponent_idxs)
+
+    def set_link_convex_decomposition_mesh_alpha(self, link_idx: int, alpha: float, subcomponent_idxs=None):
+        ChainBlender._set_link_alpha(link_idx, alpha, self.blender_objects_convex_decomposition_materials, subcomponent_idxs)
+
+    def keyframe_convex_decomposition_mesh_material(self, frame: int, link_idx: int, subcomponent_idxs=None):
+        ChainBlender._keyframe_link_material(frame, link_idx, self.blender_objects_convex_decomposition_materials, subcomponent_idxs)
+
+    def set_all_links_convex_decomposition_mesh_color(self, color: tuple[float, float, float, float]):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.set_link_convex_decomposition_mesh_color(i, color)
+
+    def set_all_links_convex_decomposition_mesh_alpha(self, alpha: float):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.set_link_convex_decomposition_mesh_alpha(i, alpha)
+
+    def keyframe_all_convex_decomposition_mesh_materials(self, frame: int):
+        num_links = len(self.chain.urdf_module.links)
+        for i in range(num_links):
+            self.keyframe_convex_decomposition_mesh_material(frame, i)
 
 
 

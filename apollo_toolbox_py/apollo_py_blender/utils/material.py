@@ -81,7 +81,7 @@ class BlenderSimpleMaterial:
         """
         if self.material_type == 'Principled BSDF':
             self.input_node.inputs[0].keyframe_insert('default_value', frame=frame)  # color
-            self.input_node.inputs[21].keyframe_insert('default_value', frame=frame)  # alpha
+            self.input_node.inputs['Alpha'].keyframe_insert('default_value', frame=frame)  # alpha
         if self.material_type == 'Emission':
             self.input_node.inputs[0].keyframe_insert('default_value', frame=frame)
             self.input_node.inputs['Strength'].keyframe_insert('default_value', frame=frame)
