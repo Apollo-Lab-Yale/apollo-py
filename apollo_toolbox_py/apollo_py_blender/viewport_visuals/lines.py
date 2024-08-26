@@ -8,7 +8,7 @@ from easybpy.easybpy import (
     location, rotation, scale_along_local_x, scale_along_local_y, delete_object
 )
 from apollo_toolbox_py.apollo_py_blender.utils.keyframes import KeyframeUtils
-from apollo_toolbox_py.apollo_py_blender.utils.material import ApolloBlenderSimpleMaterial
+from apollo_toolbox_py.apollo_py_blender.utils.material import BlenderSimpleMaterial
 from apollo_toolbox_py.apollo_py_blender.utils.visibility import set_visibility
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.rotation_matrices import Rotation3
@@ -36,7 +36,7 @@ class BlenderLine:
             end_point: Union[Tuple[float, float, float], List[float]],
             radius: float = 0.01, vertices: int = 6,
             name: Optional[str] = None, collection_name: str = 'Lines',
-            material: Optional[ApolloBlenderSimpleMaterial] = None
+            material: Optional[BlenderSimpleMaterial] = None
     ) -> 'BlenderLine':
         """
         Static method to create a new line object in Blender.
@@ -86,7 +86,7 @@ class BlenderLine:
             end_point: Union[Tuple[float, float, float], List[float]],
             radius: float = 0.01, name: Optional[str] = None,
             collection_name: str = 'Lines',
-            material: Optional[ApolloBlenderSimpleMaterial] = None
+            material: Optional[BlenderSimpleMaterial] = None
     ) -> 'BlenderLine':
         """
         Static method to create a copy of an existing line object in Blender.
@@ -180,14 +180,14 @@ class BlenderLineSet:
         - linked_material_for_each_line: Whether each line has a linked material or not.
         """
         self.lines: List[BlenderLine] = []
-        self.materials: List[ApolloBlenderSimpleMaterial] = []
+        self.materials: List[BlenderSimpleMaterial] = []
 
         line_to_copy: BlenderLine = BlenderLine.spawn_new([0, 0, 0], [0, 0, 1], collection_name=None)
 
         if default_color is None:
             default_color = (0.2, 0.2, 0.2, 1)
 
-        base_material: ApolloBlenderSimpleMaterial = ApolloBlenderSimpleMaterial(
+        base_material: BlenderSimpleMaterial = BlenderSimpleMaterial(
             material_type=material_type, default_color=default_color
         )
         base_material.keyframe_material(0)
@@ -200,7 +200,7 @@ class BlenderLineSet:
                 base_material.apply_material_to_object(line_copy.blender_object)
                 self.materials.append(base_material)
             else:
-                new_material: ApolloBlenderSimpleMaterial = ApolloBlenderSimpleMaterial(
+                new_material: BlenderSimpleMaterial = BlenderSimpleMaterial(
                     material_type=material_type, default_color=default_color
                 )
                 new_material.apply_material_to_object(line_copy.blender_object)
@@ -249,7 +249,7 @@ class BlenderLineSet:
         KeyframeUtils.keyframe_visibility(curr_line.blender_object, frame + 1)
 
         if color is not None:
-            material: ApolloBlenderSimpleMaterial = self.materials[self.per_frame_next_available_line[frame]]
+            material: BlenderSimpleMaterial = self.materials[self.per_frame_next_available_line[frame]]
             material.set_color(color)
             material.keyframe_material(frame)
 

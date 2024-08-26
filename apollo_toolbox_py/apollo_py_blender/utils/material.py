@@ -1,10 +1,10 @@
 import bpy
 from typing import Tuple
 
-__all__ = ['ApolloBlenderSimpleMaterial']
+__all__ = ['BlenderSimpleMaterial']
 
 
-class ApolloBlenderSimpleMaterial:
+class BlenderSimpleMaterial:
     def __init__(self, name: str = 'Procedural Material', material_type: str = 'Principled BSDF',
                  default_color: Tuple[float, float, float, float] = (0.2, 0.2, 0.2, 1)) -> None:
         """
@@ -62,7 +62,9 @@ class ApolloBlenderSimpleMaterial:
         - alpha: The new alpha value of the material.
         """
         if self.material_type == 'Principled BSDF':
-            self.input_node.inputs[21].default_value = alpha
+            # print(self.input_node.inputs[21])
+            # self.input_node.inputs[21].default_value = alpha
+            self.input_node.inputs['Alpha'].default_value = alpha
 
     def reset_color(self):
         """

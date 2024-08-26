@@ -8,7 +8,7 @@ from easybpy.easybpy import (
     select_object, deselect_all_objects, copy_object, delete_object
 )
 from apollo_toolbox_py.apollo_py_blender.utils.keyframes import KeyframeUtils
-from apollo_toolbox_py.apollo_py_blender.utils.material import ApolloBlenderSimpleMaterial
+from apollo_toolbox_py.apollo_py_blender.utils.material import BlenderSimpleMaterial
 from apollo_toolbox_py.apollo_py_blender.utils.visibility import set_visibility
 
 __all__ = ['BlenderCube', 'BlenderCubeSet']
@@ -36,7 +36,7 @@ class BlenderCube:
             half_extents: Union[Tuple[float, float, float], List[float]],
             name: Optional[str] = None,
             collection_name: str = 'Cubes',
-            material: Optional[ApolloBlenderSimpleMaterial] = None,
+            material: Optional[BlenderSimpleMaterial] = None,
             wireframe: bool = False,
             wireframe_thickness: float = 0.01
     ) -> 'BlenderCube':
@@ -101,7 +101,7 @@ class BlenderCube:
             half_extents: Union[Tuple[float, float, float], List[float]],
             name: Optional[str] = None,
             collection_name: str = 'Cubes',
-            material: Optional[ApolloBlenderSimpleMaterial] = None
+            material: Optional[BlenderSimpleMaterial] = None
     ) -> 'BlenderCube':
         """
         Static method to create a copy of an existing cube object in Blender.
@@ -191,7 +191,7 @@ class BlenderCubeSet:
         - wireframe_thickness: Thickness of the wireframe.
         """
         self.cubes: List[BlenderCube] = []
-        self.materials: List[ApolloBlenderSimpleMaterial] = []
+        self.materials: List[BlenderSimpleMaterial] = []
 
         cube_to_copy: BlenderCube = BlenderCube.spawn_new([0, 0, 0], [0, 0, 0], [1, 1, 1],
                                                           collection_name=None, wireframe=wireframe,
@@ -200,8 +200,8 @@ class BlenderCubeSet:
         if default_color is None:
             default_color = (0.2, 0.2, 0.2, 1)
 
-        base_material: ApolloBlenderSimpleMaterial = ApolloBlenderSimpleMaterial(material_type=material_type,
-                                                                                 default_color=default_color)
+        base_material: BlenderSimpleMaterial = BlenderSimpleMaterial(material_type=material_type,
+                                                                     default_color=default_color)
         base_material.keyframe_material(0)
 
         for i in range(num_cubes):
@@ -211,8 +211,8 @@ class BlenderCubeSet:
                 base_material.apply_material_to_object(cube_copy.blender_object)
                 self.materials.append(base_material)
             else:
-                new_material: ApolloBlenderSimpleMaterial = ApolloBlenderSimpleMaterial(material_type=material_type,
-                                                                                        default_color=default_color)
+                new_material: BlenderSimpleMaterial = BlenderSimpleMaterial(material_type=material_type,
+                                                                            default_color=default_color)
                 new_material.apply_material_to_object(cube_copy.blender_object)
                 new_material.keyframe_material(0)
                 self.materials.append(new_material)
@@ -263,12 +263,12 @@ class BlenderCubeSet:
         KeyframeUtils.keyframe_visibility(curr_cube.blender_object, frame + 1)
 
         if color is not None:
-            material: ApolloBlenderSimpleMaterial = self.materials[self.per_frame_next_available_cube[frame]]
+            material: BlenderSimpleMaterial = self.materials[self.per_frame_next_available_cube[frame]]
             material.set_color(color)
             material.keyframe_material(frame)
 
         if alpha is not None:
-            material: ApolloBlenderSimpleMaterial = self.materials[self.per_frame_next_available_cube[frame]]
+            material: BlenderSimpleMaterial = self.materials[self.per_frame_next_available_cube[frame]]
             material.set_alpha(alpha)
             material.keyframe_material(frame)
 
