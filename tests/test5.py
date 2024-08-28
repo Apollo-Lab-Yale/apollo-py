@@ -1,7 +1,27 @@
+from apollo_toolbox_py.apollo_py.apollo_py_derivatives.derivative_engine import FunctionMode, ADMode
+from apollo_toolbox_py.apollo_py.apollo_py_derivatives.fd_derivatives import FDDerivativeEngine
+from apollo_toolbox_py.apollo_py.apollo_py_derivatives.jax_derivatives import JaxDerivativeEngine
+from apollo_toolbox_py.apollo_py.apollo_py_derivatives.wasp_derivatives import WASPDerivativeEngine, JitCompileMode
+import numpy as np
+import jax.numpy as jnp
+import jax
 
-from apollo_toolbox_py.prelude import *
+jax.config.update("jax_enable_x64", True)
 
-r = ResourcesRootDirectory.new_from_default_apollo_robots_dir()
-s = r.get_subdirectory('b1')
-c = s.to_chain_numpy()
 
+def f(x):
+    return [x[0] ** 2 + x[1] ** 2, x[1]**2 + x[2]**2]
+
+
+w = WASPDerivativeEngine(f, 3, 2, JitCompileMode.Jax)
+res = w.derivative([5., 6., 7.])
+print(res)
+
+res = w.derivative([5.2, 6.1, 7.1])
+print(res)
+
+res = w.derivative([5.7, 6.2, 7.4])
+print(res)
+
+w = JaxDerivativeEngine(f, 3, 2, JitCompileMode.Jax)
+print(w.derivative([5.7, 6.2, 7.4]))
