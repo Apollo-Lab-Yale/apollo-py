@@ -10,7 +10,8 @@ from apollo_toolbox_py.apollo_py.apollo_py_derivatives.derivative_engine import 
 
 
 class WASPDerivativeEngine(DerivativeEngine):
-    def __init__(self, f, n: int, m: int, jit_compile_f: JitCompileMode = JitCompileMode.DoNotJitCompile, lagrange_multiplier_inf_norm_cutoff=0.1):
+    def __init__(self, f, n: int, m: int, jit_compile_f: JitCompileMode = JitCompileMode.DoNotJitCompile,
+                 lagrange_multiplier_inf_norm_cutoff=0.1):
         super().__init__(f, n, m)
 
         if jit_compile_f == JitCompileMode.Jax:
@@ -20,7 +21,7 @@ class WASPDerivativeEngine(DerivativeEngine):
             self.f = numba.jit(f)
 
         self.lagrange_multiplier_inf_norm_cutoff = lagrange_multiplier_inf_norm_cutoff
-        self.r = self.n+1
+        self.r = self.n + 4
         self.delta_x_mat = np.random.uniform(-1.0, 1.0, (self.n, self.r))
         self.delta_x_mat_T = self.delta_x_mat.T
         # self.delta_f_hat_mat_T = np.random.uniform(-1.0, 1.0, (self.r, self.m))
@@ -37,16 +38,18 @@ class WASPDerivativeEngine(DerivativeEngine):
             p[self.n, 0: self.n] = delta_x_i.T
             self.p_matrices.append(np.linalg.inv(p))
 
-    def _derivative_internal(self, x, recursive_call=False) -> np.ndarray:
+    def _derivative_internal(self, x, recursive_call=False, f0=None) -> np.ndarray:
         i = self.i
 
         p_mat_i = self.p_matrices[i]
         delta_x_i = self.delta_x_mat[:, i]
 
-        f0 = self.call_numpy(x)
-        xh = np.array(x) + (0.00000001 * delta_x_i)
+        if f0 is None:
+            f0 = self.call_numpy(x)
+
+        xh = np.array(x) + (0.000001 * delta_x_i)
         fh = self.call_numpy(xh)
-        delta_f_i = (fh - f0) / 0.00000001
+        delta_f_i = (fh - f0) / 0.000001
         self.delta_f_hat_mat_T[i, :] = delta_f_i
 
         a_mat = 2.0 * self.delta_x_mat @ self.delta_f_hat_mat_T
@@ -71,7 +74,7 @@ class WASPDerivativeEngine(DerivativeEngine):
             self.i = 0
 
         if inf_norm > self.lagrange_multiplier_inf_norm_cutoff:
-            return self._derivative_internal(x, True)
+            return self._derivative_internal(x, True, f0)
         else:
             return d_mat_t.T
 
