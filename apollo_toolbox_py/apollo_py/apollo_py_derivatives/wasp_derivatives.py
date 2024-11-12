@@ -24,7 +24,6 @@ class WASPDerivativeEngine(DerivativeEngine):
         self.r = self.n + 4
         self.delta_x_mat = np.random.uniform(-1.0, 1.0, (self.n, self.r))
         self.delta_x_mat_T = self.delta_x_mat.T
-        # self.delta_f_hat_mat_T = np.random.uniform(-1.0, 1.0, (self.r, self.m))
         self.delta_f_hat_mat_T = np.zeros((self.r, self.m))
         self.i = 0
 
@@ -35,8 +34,10 @@ class WASPDerivativeEngine(DerivativeEngine):
             p[0:self.n, 0:self.n] = tmp
             delta_x_i = self.delta_x_mat[:, i]
             p[0: self.n, self.n] = delta_x_i
-            p[self.n, 0: self.n] = delta_x_i.T
+            p[self.n, 0: self.n] = -delta_x_i.T
             self.p_matrices.append(np.linalg.inv(p))
+
+        self.num_f_calls = 0
 
     def _derivative_internal(self, x, recursive_call=False, f0=None) -> np.ndarray:
         i = self.i
@@ -46,17 +47,25 @@ class WASPDerivativeEngine(DerivativeEngine):
 
         if f0 is None:
             f0 = self.call_numpy(x)
+            self.num_f_calls += 1
 
-        xh = np.array(x) + (0.000001 * delta_x_i)
+        xh = np.array(x) + (0.00001 * delta_x_i)
         fh = self.call_numpy(xh)
-        delta_f_i = (fh - f0) / 0.000001
-        self.delta_f_hat_mat_T[i, :] = delta_f_i
+        self.num_f_calls += 1
+        delta_f_i = (fh - f0) / 0.00001
+        print(delta_f_i)
+        print()
+        print(self.delta_f_hat_mat_T)
+        print()
+        self.delta_f_hat_mat_T[i, :] = delta_f_i.flatten()
+        print(self.delta_f_hat_mat_T)
+        print('---')
 
         a_mat = 2.0 * self.delta_x_mat @ self.delta_f_hat_mat_T
 
         b_mat = np.zeros((self.n + 1, self.m))
         b_mat[0:self.n, 0:self.m] = a_mat
-        b_mat[self.n, 0:self.m] = delta_f_i.T
+        b_mat[self.n, 0:self.m] = delta_f_i.T.flatten()
 
         c_mat = p_mat_i @ b_mat
         d_mat_t = c_mat[0:self.n, 0:self.m]
@@ -79,4 +88,5 @@ class WASPDerivativeEngine(DerivativeEngine):
             return d_mat_t.T
 
     def derivative(self, x) -> np.ndarray:
+        self.num_f_calls = 0
         return self._derivative_internal(x, False)

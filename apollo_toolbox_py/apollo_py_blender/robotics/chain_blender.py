@@ -157,6 +157,9 @@ class ChainBlender:
 
     def set_state(self, state: List[float]):
         state = V(state)
+        self.set_state_v(state)
+
+    def set_state_v(self, state: V):
         chain: ChainNumpy = self.chain
         fk_res: List[LieGroupISE3q] = chain.fk(state)
         for link_idx, frame in enumerate(fk_res):

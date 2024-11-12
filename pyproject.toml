@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "apollo-toolbox-py"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 authors = ["Danny Rakita <daniel.rakita@yale.edu>"]
 license = "MIT"
@@ -15,7 +15,8 @@ torch = { version = "^2.3.1", optional = true }
 jax = { version = "^0.4.30", optional = true }
 bpy = { version = "^4.2.0", optional = true, markers = "python_version >= '3.11' and python_version < '3.12'" }
 mathutils = { version = "^3.3.0", optional = true }
-easybpy = { git = "https://github.com/djrakita/EasyBPY", branch = "master", optional= true, markers = "python_version >= '3.11' and python_version < '3.12'" }
+# easybpy = { git = "https://github.com/djrakita/EasyBPY", branch = "master", optional= true }
+easybpy = {version = "0.0.1", optional=true, markers = "python_version >= '3.11' and python_version < '3.12'"}
 numba = "^0.60.0"
 
 [tool.poetry.extras]
