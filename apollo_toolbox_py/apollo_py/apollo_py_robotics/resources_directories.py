@@ -13,7 +13,8 @@ from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.m
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.mesh_modules.plain_meshes_module import \
     ApolloPlainMeshesModule
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.urdf_module import ApolloURDFModule
-from apollo_toolbox_py.apollo_py.path_buf import PathBufPyWrapper
+from apollo_toolbox_py.apollo_py.path_buf import PathBuf
+# from apollo_toolbox_py.apollo_py.path_buf import PathBufPyWrapper
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.robot_runtime_modules.urdf_numpy_module import \
     ApolloURDFNumpyModule
 
@@ -21,16 +22,16 @@ __all__ = ['ResourcesRootDirectory', 'ResourcesSubDirectory']
 
 
 class ResourcesRootDirectory:
-    def __init__(self, directory: PathBufPyWrapper):
+    def __init__(self, directory: PathBuf):
         self.directory = directory
 
     @staticmethod
     def new_from_default_apollo_robots_dir() -> 'ResourcesRootDirectory':
-        return ResourcesRootDirectory(PathBufPyWrapper.new_from_default_apollo_robots_dir())
+        return ResourcesRootDirectory(PathBuf.new_from_default_apollo_robots_dir())
 
     @staticmethod
     def new_from_default_apollo_environments_dir() -> 'ResourcesRootDirectory':
-        return ResourcesRootDirectory(PathBufPyWrapper.new_from_default_apollo_environments_dir())
+        return ResourcesRootDirectory(PathBuf.new_from_default_apollo_environments_dir())
 
     def get_subdirectory(self, name: str) -> 'ResourcesSubDirectory':
         directory = self.directory.append(name)
@@ -38,10 +39,10 @@ class ResourcesRootDirectory:
 
 
 class ResourcesSubDirectory:
-    def __init__(self, name: str, robots_directory: PathBufPyWrapper, directory: PathBufPyWrapper):
+    def __init__(self, name: str, robots_directory: PathBuf, directory: PathBuf):
         self.name: str = name
-        self.root_directory: PathBufPyWrapper = robots_directory
-        self.directory: PathBufPyWrapper = directory
+        self.root_directory: PathBuf = robots_directory
+        self.directory: PathBuf = directory
 
     def to_urdf_module(self) -> 'ApolloURDFModule':
         dd = self.directory.append('urdf_module/module.json')
