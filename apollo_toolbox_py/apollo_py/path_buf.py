@@ -333,6 +333,9 @@ class PathBuf:
         """
         return self._path.exists()
 
+    def to_string(self):
+        return str(self._path)
+
     def __str__(self) -> str:
         """
         Returns string representation of the path.
