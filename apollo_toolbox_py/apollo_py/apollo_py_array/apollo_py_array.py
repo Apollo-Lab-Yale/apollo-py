@@ -27,15 +27,22 @@ class ApolloPyArray:
         self.array = None
 
     @classmethod
-    def new_from_values(cls, row_major_values, backend: B = None) -> 'ApolloPyArray':
+    def new_with_backend(cls, row_major_values, backend: B = None) -> 'ApolloPyArray':
         if not backend:
             backend = ApolloPyArrayBackendNumpy()
+
+        if isinstance(row_major_values, ApolloPyArray):
+            row_major_values = row_major_values.to_numpy_array()
+
         out = cls()
         out.array = backend.create_array(row_major_values)
         return out
 
     @classmethod
     def new(cls, array) -> 'ApolloPyArray':
+        if isinstance(array, ApolloPyArray):
+            array = array.array
+
         out = cls()
         out.array = array
         return out
@@ -45,21 +52,21 @@ class ApolloPyArray:
         if not backend:
             backend = ApolloPyArrayBackendNumpy()
         a = np.zeros(shape)
-        return ApolloPyArray.new_from_values(a, backend)
+        return ApolloPyArray.new_with_backend(a, backend)
 
     @staticmethod
     def ones(shape, backend: B = None) -> 'ApolloPyArray':
         if not backend:
             backend = ApolloPyArrayBackendNumpy()
         a = np.ones(shape)
-        return ApolloPyArray.new_from_values(a, backend)
+        return ApolloPyArray.new_with_backend(a, backend)
 
     @staticmethod
     def diag(diag, backend: B = None) -> 'ApolloPyArray':
         if not backend:
             backend = ApolloPyArrayBackendNumpy()
         a = np.diag(diag)
-        return ApolloPyArray.new_from_values(a, backend)
+        return ApolloPyArray.new_with_backend(a, backend)
 
     def mul(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
         return ApolloPyArray.new(self.array @ other.array)
