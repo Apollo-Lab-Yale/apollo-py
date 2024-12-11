@@ -94,6 +94,9 @@ class ApolloPyArray:
     def __truediv__(self, scalar) -> 'ApolloPyArray':
         return self.scalar_div(scalar)
 
+    def __pow__(self, scalar) -> 'ApolloPyArray':
+        return self.power(scalar)
+
     def transpose(self) -> 'ApolloPyArray':
         return ApolloPyArray.new(self.array.transpose())
 
