@@ -1,8 +1,10 @@
 from typing import TypeVar, Optional, Union, Tuple
 import numpy as np
+import scipy
 
 try:
     import jax.numpy as jnp
+    import jax.scipy as jsp
     import jax
 
     HAS_JAX = True
@@ -98,6 +100,27 @@ class ApolloPyArray:
     def shape(self):
         return self.array.array.shape
 
+    def is_scalar(self):
+        return len(self.shape) == 0
+
+    def diagonalize(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.diagonalize())
+
+    def inv(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.inv())
+
+    def pinv(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.pinv())
+
+    def det(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.det())
+
+    def trace(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.trace())
+
+    def matrix_exp(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.matrix_exp())
+
     def svd(self, full_matrices: bool = True) -> 'SVDResult':
         return self.array.svd(full_matrices)
 
@@ -112,6 +135,18 @@ class ApolloPyArray:
 
     def __repr__(self):
         return self.array.__repr__()
+
+    def type(self):
+        return type(self.array)
+
+    def is_numpy(self):
+        return self.type() == ApolloPyArrayNumpy
+
+    def is_jax(self):
+        return self.type() == ApolloPyArrayJAX
+
+    def is_torch(self):
+        return self.type() == ApolloPyArrayTorch
 
 
 class ApolloPyArrayBackend:
@@ -171,6 +206,24 @@ class ApolloPyArrayABC:
     def resize(self, new_shape: Tuple[int, ...]) -> T:
         raise NotImplementedError('abstract base class')
 
+    def diagonalize(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def inv(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def pinv(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def det(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def trace(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def matrix_exp(self) -> T:
+        raise NotImplementedError('abstract base class')
+
     def svd(self, full_matrices: bool = False) -> 'SVDResult':
         raise NotImplementedError('abstract base class')
 
@@ -220,6 +273,24 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
             A new NumPy-backed ApolloPyArray with the specified shape
         """
         return ApolloPyArrayNumpy(np.resize(self.array, new_shape))
+
+    def diagonalize(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.diag(self.array))
+
+    def inv(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.linalg.inv(self.array))
+
+    def pinv(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.linalg.pinv(self.array))
+
+    def det(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.linalg.det(self.array))
+
+    def trace(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.linalg.trace(self.array))
+
+    def matrix_exp(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(scipy.linalg.expm(self.array))
 
     def svd(self, full_matrices: bool = False) -> 'SVDResult':
         U, S, VT = np.linalg.svd(self.array, full_matrices=full_matrices)
@@ -293,6 +364,24 @@ if HAS_JAX:
             """
             return ApolloPyArrayJAX(jnp.resize(self.array, new_shape))
 
+        def diagonalize(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.diag(self.array))
+
+        def inv(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.linalg.inv(self.array))
+
+        def pinv(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.linalg.pinv(self.array))
+
+        def det(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.linalg.det(self.array))
+
+        def trace(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.linalg.trace(self.array))
+
+        def matrix_exp(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jsp.linalg.expm(self.array))
+
         def svd(self, full_matrices: bool = False) -> 'SVDResult':
             U, S, VT = jnp.linalg.svd(self.array, full_matrices=full_matrices)
             U = ApolloPyArrayJAX(U)
@@ -364,6 +453,24 @@ if HAS_PYTORCH:
                 A new PyTorch-backed ApolloPyArray with the specified shape
             """
             return ApolloPyArrayTorch(self.array.reshape(new_shape))
+
+        def diagonalize(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.diag(self.array))
+
+        def inv(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.linalg.inv(self.array))
+
+        def pinv(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.linalg.pinv(self.array))
+
+        def det(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array.det())
+
+        def trace(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array.trace())
+
+        def matrix_exp(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.linalg.matrix_exp(self.array))
 
         def svd(self, full_matrices: bool = False) -> 'SVDResult':
             U, S, VT = torch.linalg.svd(self.array, full_matrices=full_matrices)
