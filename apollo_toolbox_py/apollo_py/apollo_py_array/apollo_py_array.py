@@ -1,6 +1,5 @@
-from typing import TypeVar, Optional, Union
+from typing import TypeVar, Optional, Union, Tuple
 import numpy as np
-
 
 try:
     import jax.numpy as jnp
@@ -22,23 +21,88 @@ B = TypeVar('B', bound='ApolloPyArrayBackend')
 
 
 class ApolloPyArray:
-    def __init__(self, row_major_values, backend: B):
-        self.array = backend.create_array(row_major_values)
+    def __init__(self):
+        self.array = None
+
+    @classmethod
+    def new_from_values(cls, row_major_values, backend: B) -> 'ApolloPyArray':
+        out = cls()
+        out.array = backend.create_array(row_major_values)
+        return out
+
+    @classmethod
+    def new(cls, array) -> 'ApolloPyArray':
+        out = cls()
+        out.array = array
+        return out
+
+    @staticmethod
+    def zeros(shape, backend: B) -> 'ApolloPyArray':
+        a = np.zeros(shape)
+        return ApolloPyArray.new_from_values(a, backend)
+
+    @staticmethod
+    def ones(shape, backend: B) -> 'ApolloPyArray':
+        a = np.ones(shape)
+        return ApolloPyArray.new_from_values(a, backend)
+
+    @staticmethod
+    def diag(diag, backend: B) -> 'ApolloPyArray':
+        a = np.diag(diag)
+        return ApolloPyArray.new_from_values(a, backend)
 
     def mul(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return self.array @ other.array
+        return ApolloPyArray.new(self.array @ other.array)
 
     def __matmul__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return self.array @ other.array
+        return self.mul(other)
 
     def add(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return self.array + other.array
+        return ApolloPyArray.new(self.array + other.array)
 
     def __add__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return self.array + other.array
+        return self.add(other)
+
+    def sub(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array - other.array)
+
+    def __sub__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
+        return self.sub(other)
+
+    def scalar_mul(self, scalar) -> 'ApolloPyArray':
+        return ApolloPyArray.new(scalar * self.array)
+
+    def __mul__(self, scalar) -> 'ApolloPyArray':
+        return self.scalar_mul(scalar)
+
+    def __rmul__(self, scalar) -> 'ApolloPyArray':
+        return self.scalar_mul(scalar)
+
+    def scalar_div(self, scalar) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array / scalar)
+
+    def __truediv__(self, scalar) -> 'ApolloPyArray':
+        return self.scalar_div(scalar)
+
+    def transpose(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.transpose())
+
+    @property
+    def T(self):
+        return self.transpose()
+
+    def resize(self, new_shape: Tuple[int, ...]) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.resize(new_shape))
+
+    @property
+    def shape(self):
+        return self.array.array.shape
+
+    def svd(self, full_matrices: bool = True) -> 'SVDResult':
+        return self.array.svd(full_matrices)
 
     def __getitem__(self, index):
-        return self.array.__getitem__(index)
+        return ApolloPyArray.new(self.array.__getitem__(index))
 
     def __setitem__(self, index, value):
         self.array.__setitem__(index, value)
@@ -76,6 +140,40 @@ class ApolloPyArrayABC:
     def __add__(self, other: T) -> T:
         return self.add(other)
 
+    def sub(self, other: T) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def __sub__(self, other: T) -> T:
+        return self.sub(other)
+
+    def scalar_mul(self, scalar) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def __mul__(self, scalar) -> T:
+        return self.scalar_mul(scalar)
+
+    def __rmul__(self, scalar) -> T:
+        return self.scalar_mul(scalar)
+
+    def scalar_div(self, scalar) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def __truediv__(self, scalar) -> T:
+        return self.scalar_div(scalar)
+
+    def transpose(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    @property
+    def T(self):
+        return self.transpose()
+
+    def resize(self, new_shape: Tuple[int, ...]) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def svd(self, full_matrices: bool = False) -> 'SVDResult':
+        raise NotImplementedError('abstract base class')
+
     def __getitem__(self, key):
         raise NotImplementedError('abstract base class')
 
@@ -99,8 +197,39 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
     def add(self, other: 'ApolloPyArrayNumpy') -> 'ApolloPyArrayNumpy':
         return ApolloPyArrayNumpy(self.array + other.array)
 
+    def sub(self, other: 'ApolloPyArrayNumpy') -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(self.array - other.array)
+
+    def scalar_mul(self, scalar) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(self.array * scalar)
+
+    def scalar_div(self, scalar) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(self.array / scalar)
+
+    def transpose(self) -> T:
+        return ApolloPyArrayNumpy(self.array.transpose())
+
+    def resize(self, new_shape: Tuple[int, ...]) -> 'ApolloPyArrayNumpy':
+        """
+        Resize the NumPy array to a new shape.
+
+        Args:
+            new_shape: A tuple representing the new shape of the array
+
+        Returns:
+            A new NumPy-backed ApolloPyArray with the specified shape
+        """
+        return ApolloPyArrayNumpy(np.resize(self.array, new_shape))
+
+    def svd(self, full_matrices: bool = False) -> 'SVDResult':
+        U, S, VT = np.linalg.svd(self.array, full_matrices=full_matrices)
+        U = ApolloPyArrayNumpy(U)
+        S = ApolloPyArrayNumpy(S)
+        VT = ApolloPyArrayNumpy(VT)
+        return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
+
     def __getitem__(self, key):
-        return self.array[key]
+        return ApolloPyArrayNumpy(self.array[key])
 
     def __setitem__(self, key, value):
         self.array[key] = value
@@ -140,8 +269,39 @@ if HAS_JAX:
         def add(self, other: 'ApolloPyArrayJAX') -> 'ApolloPyArrayJAX':
             return ApolloPyArrayJAX(self.array + other.array)
 
+        def sub(self, other: 'ApolloPyArrayJAX') -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(self.array - other.array)
+
+        def scalar_mul(self, scalar) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(self.array * scalar)
+
+        def scalar_div(self, scalar) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(self.array / scalar)
+
+        def transpose(self) -> T:
+            return ApolloPyArrayJAX(self.array.transpose())
+
+        def resize(self, new_shape: Tuple[int, ...]) -> 'ApolloPyArrayJAX':
+            """
+            Resize the JAX array to a new shape.
+
+            Args:
+                new_shape: A tuple representing the new shape of the array
+
+            Returns:
+                A new JAX-backed ApolloPyArray with the specified shape
+            """
+            return ApolloPyArrayJAX(jnp.resize(self.array, new_shape))
+
+        def svd(self, full_matrices: bool = False) -> 'SVDResult':
+            U, S, VT = jnp.linalg.svd(self.array, full_matrices=full_matrices)
+            U = ApolloPyArrayJAX(U)
+            S = ApolloPyArrayJAX(S)
+            VT = ApolloPyArrayJAX(VT)
+            return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
+
         def __getitem__(self, key):
-            return self.array[key]
+            return ApolloPyArrayJAX(self.array[key])
 
         def __setitem__(self, key, value):
             self.array = self.array.at[key].set(value)
@@ -161,8 +321,8 @@ if HAS_PYTORCH:
             self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
             self.dtype = dtype or torch.float64
 
-        def create_array(self, row_major_values) -> 'ApolloPyArrayPyTorch':
-            return ApolloPyArrayPyTorch(
+        def create_array(self, row_major_values) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(
                 torch.tensor(
                     row_major_values,
                     device=self.device,
@@ -171,18 +331,49 @@ if HAS_PYTORCH:
             )
 
 
-    class ApolloPyArrayPyTorch(ApolloPyArrayABC):
+    class ApolloPyArrayTorch(ApolloPyArrayABC):
         def __init__(self, array):
             super().__init__(array)
 
-        def mul(self, other: 'ApolloPyArrayPyTorch') -> 'ApolloPyArrayPyTorch':
-            return ApolloPyArrayPyTorch(self.array @ other.array)
+        def mul(self, other: 'ApolloPyArrayTorch') -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array @ other.array)
 
-        def add(self, other: 'ApolloPyArrayPyTorch') -> 'ApolloPyArrayPyTorch':
-            return ApolloPyArrayPyTorch(self.array + other.array)
+        def add(self, other: 'ApolloPyArrayTorch') -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array + other.array)
+
+        def sub(self, other: 'ApolloPyArrayTorch') -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array - other.array)
+
+        def scalar_mul(self, scalar) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array * scalar)
+
+        def scalar_div(self, scalar) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array / scalar)
+
+        def transpose(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array.T)
+
+        def resize(self, new_shape: Tuple[int, ...]) -> 'ApolloPyArrayTorch':
+            """
+            Resize the PyTorch tensor to a new shape.
+
+            Args:
+                new_shape: A tuple representing the new shape of the array
+
+            Returns:
+                A new PyTorch-backed ApolloPyArray with the specified shape
+            """
+            return ApolloPyArrayTorch(self.array.reshape(new_shape))
+
+        def svd(self, full_matrices: bool = False) -> 'SVDResult':
+            U, S, VT = torch.linalg.svd(self.array, full_matrices=full_matrices)
+            U = ApolloPyArrayTorch(U)
+            S = ApolloPyArrayTorch(S)
+            VT = ApolloPyArrayTorch(VT)
+            return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
 
         def __getitem__(self, key):
-            return self.array[key]
+            return ApolloPyArrayTorch(self.array[key])
 
         def __setitem__(self, key, value):
             if isinstance(value, torch.Tensor):
@@ -190,3 +381,9 @@ if HAS_PYTORCH:
             else:
                 self.array[key] = torch.tensor(value)
 
+
+class SVDResult:
+    def __init__(self, U: ApolloPyArray, singular_vals: ApolloPyArray, VT: ApolloPyArray):
+        self.U = U
+        self.singular_vals = singular_vals
+        self.VT = VT
