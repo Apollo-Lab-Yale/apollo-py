@@ -11,11 +11,9 @@ backend = ApolloPyArrayBackendTorch('mps', dtype=torch.float32)
 # backend = ApolloPyArrayBackendJAX()
 a = ApolloPyArray.new_with_backend(np.random.uniform(-3, 3, (4, 4)), backend)
 b = ApolloPyArray.new_with_backend(np.random.uniform(-3, 3, (4, 4)), backend)
+c = ApolloPyArray.new_with_backend(2.0, backend)
 
-print(a)
-print(a**3)
+res = a / c
+print(res)
 
-print(b)
-c = ApolloPyArray.new_with_backend(b)
-print(c)
 

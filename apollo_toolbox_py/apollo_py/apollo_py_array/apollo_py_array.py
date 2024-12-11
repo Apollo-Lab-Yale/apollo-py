@@ -87,6 +87,9 @@ class ApolloPyArray:
         return self.sub(other)
 
     def scalar_mul(self, scalar) -> 'ApolloPyArray':
+        if isinstance(scalar, ApolloPyArray):
+            assert scalar.is_scalar()
+            scalar = scalar.array.array
         return ApolloPyArray.new(scalar * self.array)
 
     def __mul__(self, scalar) -> 'ApolloPyArray':
@@ -95,7 +98,13 @@ class ApolloPyArray:
     def __rmul__(self, scalar) -> 'ApolloPyArray':
         return self.scalar_mul(scalar)
 
+    def __neg__(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(-1.0*self.array)
+
     def scalar_div(self, scalar) -> 'ApolloPyArray':
+        if isinstance(scalar, ApolloPyArray):
+            assert scalar.is_scalar()
+            scalar = scalar.array.array
         return ApolloPyArray.new(self.array / scalar)
 
     def __truediv__(self, scalar) -> 'ApolloPyArray':
@@ -138,6 +147,18 @@ class ApolloPyArray:
 
     def matrix_exp(self) -> 'ApolloPyArray':
         return ApolloPyArray.new(self.array.matrix_exp())
+
+    def l1_norm(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.l1_norm())
+
+    def linf_norm(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.linf_norm())
+
+    def p_norm(self, p) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.p_norm(p))
+
+    def dot(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.dot(other.array))
 
     def svd(self, full_matrices: bool = True) -> 'SVDResult':
         return self.array.svd(full_matrices)
@@ -200,6 +221,8 @@ class ApolloPyArray:
         return ApolloPyArray.new(self.array.__getitem__(index))
 
     def __setitem__(self, index, value):
+        if isinstance(value, ApolloPyArray):
+            value = value.array
         self.array.__setitem__(index, value)
 
     def __str__(self):
@@ -294,6 +317,18 @@ class ApolloPyArrayABC:
         raise NotImplementedError('abstract base class')
 
     def matrix_exp(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def l1_norm(self):
+        raise NotImplementedError('abstract base class')
+
+    def linf_norm(self):
+        raise NotImplementedError('abstract base class')
+
+    def p_norm(self, p):
+        raise NotImplementedError('abstract base class')
+
+    def dot(self, other: T) -> T:
         raise NotImplementedError('abstract base class')
 
     def svd(self, full_matrices: bool = False) -> 'SVDResult':
@@ -418,6 +453,18 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
     def matrix_exp(self) -> 'ApolloPyArrayNumpy':
         return ApolloPyArrayNumpy(scipy.linalg.expm(self.array))
 
+    def l1_norm(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.linalg.norm(self.array, ord=1))
+
+    def linf_norm(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.max(np.abs(self.array)))
+
+    def p_norm(self, p) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.linalg.norm(self.array, ord=p))
+
+    def dot(self, other: 'ApolloPyArrayNumpy') -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(self.array.dot(other.array))
+
     def svd(self, full_matrices: bool = False) -> 'SVDResult':
         U, S, VT = np.linalg.svd(self.array, full_matrices=full_matrices)
         U = ApolloPyArrayNumpy(U)
@@ -483,6 +530,8 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
         return ApolloPyArrayNumpy(self.array[key])
 
     def __setitem__(self, key, value):
+        if isinstance(value, ApolloPyArrayNumpy):
+            value = value.array
         self.array[key] = value
 
 
@@ -562,6 +611,18 @@ if HAS_JAX:
         def matrix_exp(self) -> 'ApolloPyArrayJAX':
             return ApolloPyArrayJAX(jsp.linalg.expm(self.array))
 
+        def l1_norm(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.linalg.norm(self.array, ord=1))
+
+        def linf_norm(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.max(jnp.abs(self.array)))
+
+        def p_norm(self, p) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.linalg.norm(self.array, ord=p))
+
+        def dot(self, other: 'ApolloPyArrayJAX') -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(self.array.dot(other.array))
+
         def svd(self, full_matrices: bool = False) -> 'SVDResult':
             U, S, VT = jnp.linalg.svd(self.array, full_matrices=full_matrices)
             U = ApolloPyArrayJAX(U)
@@ -627,6 +688,8 @@ if HAS_JAX:
             return ApolloPyArrayJAX(self.array[key])
 
         def __setitem__(self, key, value):
+            if isinstance(value, ApolloPyArrayJAX):
+                value = value.array
             self.array = self.array.at[key].set(value)
 
 if HAS_PYTORCH:
@@ -706,6 +769,18 @@ if HAS_PYTORCH:
         def matrix_exp(self) -> 'ApolloPyArrayTorch':
             return ApolloPyArrayTorch(torch.linalg.matrix_exp(self.array))
 
+        def l1_norm(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array.norm(ord=1))
+
+        def linf_norm(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array.norm(torch.inf))
+
+        def p_norm(self, p) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(self.array.norm(p))
+
+        def dot(self, other: 'ApolloPyArrayTorch') -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.dot(self.array, other.array))
+
         def svd(self, full_matrices: bool = False) -> 'SVDResult':
             U, S, VT = torch.linalg.svd(self.array, full_matrices=full_matrices)
             U = ApolloPyArrayTorch(U)
@@ -773,6 +848,8 @@ if HAS_PYTORCH:
             return ApolloPyArrayTorch(self.array[key])
 
         def __setitem__(self, key, value):
+            if isinstance(value, ApolloPyArrayTorch):
+                value = value.array
             if isinstance(value, torch.Tensor):
                 self.array[key] = value
             else:
