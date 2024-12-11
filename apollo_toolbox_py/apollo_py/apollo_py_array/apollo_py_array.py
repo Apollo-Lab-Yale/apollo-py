@@ -27,7 +27,9 @@ class ApolloPyArray:
         self.array = None
 
     @classmethod
-    def new_from_values(cls, row_major_values, backend: B) -> 'ApolloPyArray':
+    def new_from_values(cls, row_major_values, backend: B = None) -> 'ApolloPyArray':
+        if not backend:
+            backend = ApolloPyArrayBackendNumpy()
         out = cls()
         out.array = backend.create_array(row_major_values)
         return out
@@ -39,17 +41,23 @@ class ApolloPyArray:
         return out
 
     @staticmethod
-    def zeros(shape, backend: B) -> 'ApolloPyArray':
+    def zeros(shape, backend: B = None) -> 'ApolloPyArray':
+        if not backend:
+            backend = ApolloPyArrayBackendNumpy()
         a = np.zeros(shape)
         return ApolloPyArray.new_from_values(a, backend)
 
     @staticmethod
-    def ones(shape, backend: B) -> 'ApolloPyArray':
+    def ones(shape, backend: B = None) -> 'ApolloPyArray':
+        if not backend:
+            backend = ApolloPyArrayBackendNumpy()
         a = np.ones(shape)
         return ApolloPyArray.new_from_values(a, backend)
 
     @staticmethod
-    def diag(diag, backend: B) -> 'ApolloPyArray':
+    def diag(diag, backend: B = None) -> 'ApolloPyArray':
+        if not backend:
+            backend = ApolloPyArrayBackendNumpy()
         a = np.diag(diag)
         return ApolloPyArray.new_from_values(a, backend)
 
@@ -123,6 +131,60 @@ class ApolloPyArray:
 
     def svd(self, full_matrices: bool = True) -> 'SVDResult':
         return self.array.svd(full_matrices)
+
+    def to_numpy_array(self):
+        return self.array.to_numpy_array()
+
+    def sin(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.sin())
+
+    def cos(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.cos())
+
+    def tan(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.tan())
+
+    def arcsin(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.arcsin())
+
+    def arccos(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.arccos())
+
+    def arctan(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.arctan())
+
+    def sinh(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.sinh())
+
+    def cosh(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.cosh())
+
+    def tanh(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.tanh())
+
+    def exp(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.exp())
+
+    def log(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.log())
+
+    def log10(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.log10())
+
+    def sqrt(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.sqrt())
+
+    def abs(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.abs())
+
+    def floor(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.floor())
+
+    def ceil(self) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.ceil())
+
+    def power(self, exponent) -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.power(exponent))
 
     def __getitem__(self, index):
         return ApolloPyArray.new(self.array.__getitem__(index))
@@ -227,6 +289,60 @@ class ApolloPyArrayABC:
     def svd(self, full_matrices: bool = False) -> 'SVDResult':
         raise NotImplementedError('abstract base class')
 
+    def to_numpy_array(self) -> np.ndarray:
+        raise NotImplementedError('abstract base class')
+
+    def sin(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def cos(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def tan(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def arcsin(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def arccos(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def arctan(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def sinh(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def cosh(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def tanh(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def exp(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def log(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def log10(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def sqrt(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def abs(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def floor(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def ceil(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def power(self, exponent) -> T:
+        raise NotImplementedError('abstract base class')
+
     def __getitem__(self, key):
         raise NotImplementedError('abstract base class')
 
@@ -298,6 +414,60 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
         S = ApolloPyArrayNumpy(S)
         VT = ApolloPyArrayNumpy(VT)
         return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
+
+    def to_numpy_array(self) -> np.ndarray:
+        return self.array
+
+    def sin(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.sin(self.array))
+
+    def cos(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.cos(self.array))
+
+    def tan(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.tan(self.array))
+
+    def arcsin(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.arcsin(self.array))
+
+    def arccos(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.arccos(self.array))
+
+    def arctan(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.arctan(self.array))
+
+    def sinh(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.sinh(self.array))
+
+    def cosh(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.cosh(self.array))
+
+    def tanh(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.tanh(self.array))
+
+    def exp(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.exp(self.array))
+
+    def log(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.log(self.array))
+
+    def log10(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.log10(self.array))
+
+    def sqrt(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.sqrt(self.array))
+
+    def abs(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.abs(self.array))
+
+    def floor(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.floor(self.array))
+
+    def ceil(self) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.ceil(self.array))
+
+    def power(self, exponent) -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.power(self.array, exponent))
 
     def __getitem__(self, key):
         return ApolloPyArrayNumpy(self.array[key])
@@ -389,6 +559,60 @@ if HAS_JAX:
             VT = ApolloPyArrayJAX(VT)
             return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
 
+        def to_numpy_array(self) -> np.ndarray:
+            return np.array(self.array)
+
+        def sin(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.sin(self.array))
+
+        def cos(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.cos(self.array))
+
+        def tan(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.tan(self.array))
+
+        def arcsin(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.arcsin(self.array))
+
+        def arccos(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.arccos(self.array))
+
+        def arctan(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.arctan(self.array))
+
+        def sinh(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.sinh(self.array))
+
+        def cosh(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.cosh(self.array))
+
+        def tanh(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.tanh(self.array))
+
+        def exp(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.exp(self.array))
+
+        def log(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.log(self.array))
+
+        def log10(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.log10(self.array))
+
+        def sqrt(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.sqrt(self.array))
+
+        def abs(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.abs(self.array))
+
+        def floor(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.floor(self.array))
+
+        def ceil(self) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.ceil(self.array))
+
+        def power(self, exponent) -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.power(self.array, exponent))
+
         def __getitem__(self, key):
             return ApolloPyArrayJAX(self.array[key])
 
@@ -478,6 +702,62 @@ if HAS_PYTORCH:
             S = ApolloPyArrayTorch(S)
             VT = ApolloPyArrayTorch(VT)
             return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
+
+        def to_numpy_array(self) -> np.ndarray:
+            out = self.array.cpu().detach()
+
+            return out.numpy()
+
+        def sin(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.sin(self.array))
+
+        def cos(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.cos(self.array))
+
+        def tan(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.tan(self.array))
+
+        def arcsin(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.arcsin(self.array))
+
+        def arccos(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.arccos(self.array))
+
+        def arctan(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.arctan(self.array))
+
+        def sinh(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.sinh(self.array))
+
+        def cosh(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.cosh(self.array))
+
+        def tanh(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.tanh(self.array))
+
+        def exp(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.exp(self.array))
+
+        def log(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.log(self.array))
+
+        def log10(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.log10(self.array))
+
+        def sqrt(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.sqrt(self.array))
+
+        def abs(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.abs(self.array))
+
+        def floor(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.floor(self.array))
+
+        def ceil(self) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.ceil(self.array))
+
+        def power(self, exponent) -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.pow(self.array, exponent))
 
         def __getitem__(self, key):
             return ApolloPyArrayTorch(self.array[key])
