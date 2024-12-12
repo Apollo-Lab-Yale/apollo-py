@@ -236,6 +236,26 @@ class ApolloPyArray:
     def power(self, exponent) -> 'ApolloPyArray':
         return ApolloPyArray.new(self.array.power(exponent), self.backend)
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, ApolloPyArray):
+            n1 = self.to_numpy_array()
+            n2 = other.to_numpy_array()
+            if n1.shape != n2.shape:
+                return False
+            return (n1 == n2).all()
+        else:
+            return self.array == other
+
+    def isclose(self, other, tol=1e-3) -> bool:
+        if isinstance(other, ApolloPyArray):
+            n1 = self.to_numpy_array()
+            n2 = other.to_numpy_array()
+            if n1.shape != n2.shape:
+                return False
+            return np.isclose(n1, n2, atol=tol).all()
+        else:
+            return self.array.isclose(other, tol)
+
     def __getitem__(self, index):
         return ApolloPyArray.new(self.array.__getitem__(index), self.backend)
 
@@ -619,6 +639,34 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
     def power(self, exponent) -> 'ApolloPyArrayNumpy':
         return ApolloPyArrayNumpy(np.power(self.array, exponent))
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, ApolloPyArrayNumpy):
+            n1 = self.to_numpy_array()
+            n2 = other.to_numpy_array()
+            if n1.shape != n2.shape:
+                return False
+            return (n1 == n2).all()
+        else:
+            try:
+                n = self.to_numpy_array()
+                return (n == other).all()
+            except:
+                return False
+
+    def isclose(self, other, tol=1e-3) -> bool:
+        if isinstance(other, ApolloPyArrayNumpy):
+            n1 = self.to_numpy_array()
+            n2 = other.to_numpy_array()
+            if n1.shape != n2.shape:
+                return False
+            return np.isclose(n1, n2, atol=tol).all()
+        else:
+            try:
+                n = self.to_numpy_array()
+                return np.isclose(n, other, atol=tol).all()
+            except:
+                return False
+
     def __getitem__(self, key):
         return ApolloPyArrayNumpy(self.array[key])
 
@@ -673,7 +721,7 @@ if HAS_JAX:
                             val = val.array
                         elif isinstance(val, np.ndarray) or isinstance(val, jnp.ndarray) or isinstance(val,
                                                                                                        float) or isinstance(
-                                val, int) or isinstance(val, np.float32) or isinstance(val, np.float64):
+                            val, int) or isinstance(val, np.float32) or isinstance(val, np.float64):
                             val = val
                         else:
                             raise ValueError('not a legal input', 'val is of type {}'.format(type(val)))
@@ -836,6 +884,34 @@ if HAS_JAX:
         def power(self, exponent) -> 'ApolloPyArrayJAX':
             return ApolloPyArrayJAX(jnp.power(self.array, exponent))
 
+        def __eq__(self, other) -> bool:
+            if isinstance(other, ApolloPyArrayJAX):
+                n1 = self.to_numpy_array()
+                n2 = other.to_numpy_array()
+                if n1.shape != n2.shape:
+                    return False
+                return (n1 == n2).all()
+            else:
+                try:
+                    n = self.to_numpy_array()
+                    return (n == other).all()
+                except:
+                    return False
+
+        def isclose(self, other, tol=1e-3) -> bool:
+            if isinstance(other, ApolloPyArrayJAX):
+                n1 = self.to_numpy_array()
+                n2 = other.to_numpy_array()
+                if n1.shape != n2.shape:
+                    return False
+                return np.isclose(n1, n2, atol=tol).all()
+            else:
+                try:
+                    n = self.to_numpy_array()
+                    return np.isclose(n, other, atol=tol).all()
+                except:
+                    return False
+
         def __getitem__(self, key):
             return ApolloPyArrayJAX(self.array[key])
 
@@ -896,7 +972,7 @@ if HAS_PYTORCH:
                             val = val.array
                         elif isinstance(val, np.ndarray) or isinstance(val, jnp.ndarray) or isinstance(val,
                                                                                                        float) or isinstance(
-                                val, int) or isinstance(val, np.float32) or isinstance(val, np.float64):
+                            val, int) or isinstance(val, np.float32) or isinstance(val, np.float64):
                             val = val
                         else:
                             raise ValueError('not a legal input', 'val is of type {}'.format(type(val)))
@@ -1060,6 +1136,34 @@ if HAS_PYTORCH:
 
         def power(self, exponent) -> 'ApolloPyArrayTorch':
             return ApolloPyArrayTorch(torch.pow(self.array, exponent))
+
+        def __eq__(self, other) -> bool:
+            if isinstance(other, ApolloPyArrayTorch):
+                n1 = self.to_numpy_array()
+                n2 = other.to_numpy_array()
+                if n1.shape != n2.shape:
+                    return False
+                return (n1 == n2).all()
+            else:
+                try:
+                    n = self.to_numpy_array()
+                    return (n == other).all()
+                except:
+                    return False
+
+        def isclose(self, other, tol=1e-3) -> bool:
+            if isinstance(other, ApolloPyArrayTorch):
+                n1 = self.to_numpy_array()
+                n2 = other.to_numpy_array()
+                if n1.shape != n2.shape:
+                    return False
+                return np.isclose(n1, n2, atol=tol).all()
+            else:
+                try:
+                    n = self.to_numpy_array()
+                    return np.isclose(n, other, atol=tol).all()
+                except:
+                    return False
 
         def __getitem__(self, key):
             return ApolloPyArrayTorch(self.array[key])

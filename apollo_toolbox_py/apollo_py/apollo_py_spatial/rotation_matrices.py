@@ -72,7 +72,7 @@ class Rotation3(M3):
         if angle == 0.0:
             return Rotation3.new_unchecked(np.eye(3))
 
-        axis = axis.array / np.linalg.norm(axis.array)
+        axis = axis.normalize()
         x, y, z = axis
         cos_theta = np.cos(angle)
         sin_theta = np.sin(angle)
