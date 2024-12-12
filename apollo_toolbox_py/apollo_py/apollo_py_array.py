@@ -166,6 +166,9 @@ class ApolloPyArray:
     def to_numpy_array(self):
         return self.array.to_numpy_array()
 
+    def cross(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
+        return ApolloPyArray.new(self.array.cross(other.array))
+
     def sin(self) -> 'ApolloPyArray':
         return ApolloPyArray.new(self.array.sin())
 
@@ -302,6 +305,9 @@ class ApolloPyArrayABC:
         raise NotImplementedError('abstract base class')
 
     def diagonalize(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def cross(self, other: T) -> T:
         raise NotImplementedError('abstract base class')
 
     def inv(self) -> T:
@@ -475,6 +481,9 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
     def to_numpy_array(self) -> np.ndarray:
         return self.array
 
+    def cross(self, other: 'ApolloPyArrayNumpy') -> 'ApolloPyArrayNumpy':
+        return ApolloPyArrayNumpy(np.cross(self.array, other.array))
+
     def sin(self) -> 'ApolloPyArrayNumpy':
         return ApolloPyArrayNumpy(np.sin(self.array))
 
@@ -632,6 +641,9 @@ if HAS_JAX:
 
         def to_numpy_array(self) -> np.ndarray:
             return np.array(self.array)
+
+        def cross(self, other: 'ApolloPyArrayJAX') -> 'ApolloPyArrayJAX':
+            return ApolloPyArrayJAX(jnp.cross(self.array, other.array))
 
         def sin(self) -> 'ApolloPyArrayJAX':
             return ApolloPyArrayJAX(jnp.sin(self.array))
@@ -792,6 +804,9 @@ if HAS_PYTORCH:
             out = self.array.cpu().detach()
 
             return out.numpy()
+
+        def cross(self, other: 'ApolloPyArrayTorch') -> 'ApolloPyArrayTorch':
+            return ApolloPyArrayTorch(torch.cross(self.array, other.array, dim=0))
 
         def sin(self) -> 'ApolloPyArrayTorch':
             return ApolloPyArrayTorch(torch.sin(self.array))

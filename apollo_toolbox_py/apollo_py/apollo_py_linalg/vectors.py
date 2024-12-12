@@ -1,9 +1,9 @@
 from typing import Union, List, TypeVar
 import numpy as np
 
-from apollo_toolbox_py.apollo_py.apollo_py_array.apollo_py_array import ApolloPyArray, ApolloPyArrayBackend
+from apollo_toolbox_py.apollo_py.apollo_py_array import ApolloPyArray
 
-# __all__ = ['V', 'V3', 'V6']
+__all__ = ['V', 'V3', 'V6']
 
 B = TypeVar('B', bound='ApolloPyArrayBackend')
 
@@ -66,3 +66,32 @@ class V:
 
     def __str__(self) -> str:
         return f"V(\n{self.array}\n)"
+
+
+class V3(V):
+    def __init__(self, array: Union[List[float], np.ndarray, ApolloPyArray], backend: B = None):
+        super().__init__(array, backend)
+        if self.array.shape != (3,):
+            raise ValueError("V3 must be a 3-vector.")
+
+    def cross(self, other: 'V3') -> 'V3':
+        return V3(self.array.cross(other.array))
+
+    def __repr__(self) -> str:
+        return f"V3(\n{self.array}\n)"
+
+    def __str__(self) -> str:
+        return f"V3(\n{self.array}\n)"
+
+
+class V6(V):
+    def __init__(self, array: Union[List[float], np.ndarray]):
+        super().__init__(array)
+        if self.array.shape != (6,):
+            raise ValueError("V6 must be a 6-vector.")
+
+    def __repr__(self) -> str:
+        return f"V6(\n{np.array2string(self.array)}\n)"
+
+    def __str__(self) -> str:
+        return f"V6(\n{np.array2string(self.array)}\n)"
