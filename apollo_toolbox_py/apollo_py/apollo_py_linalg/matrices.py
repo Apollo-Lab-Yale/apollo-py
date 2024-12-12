@@ -3,6 +3,8 @@ import numpy as np
 
 from apollo_toolbox_py.apollo_py.apollo_py_array import ApolloPyArray
 
+__all__ = ['M', 'M3']
+
 B = TypeVar('B', bound='ApolloPyArrayBackend')
 
 
@@ -29,6 +31,9 @@ class M:
 
     def det(self):
         return self.array.det()
+
+    def rank(self) -> int:
+        return self.array.matrix_rank()
 
     def inv(self):
         return self.__class__(self.array.inv())

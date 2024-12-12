@@ -25,6 +25,7 @@ B = TypeVar('B', bound='ApolloPyArrayBackend')
 class ApolloPyArray:
     def __init__(self):
         self.array = None
+        self.backend = None
 
     @classmethod
     def new_with_backend(cls, row_major_values, backend: B = None) -> 'ApolloPyArray':
@@ -36,15 +37,27 @@ class ApolloPyArray:
 
         out = cls()
         out.array = backend.create_array(row_major_values)
+        out.backend = backend
         return out
 
     @classmethod
-    def new(cls, array) -> 'ApolloPyArray':
+    def new(cls, array, backend: B) -> 'ApolloPyArray':
+        if isinstance(array, np.ndarray):
+            return cls.new_with_backend(array, backend)
+
+        assert issubclass(type(array), ApolloPyArrayABC) or isinstance(array,
+                                                                       ApolloPyArray), 'array is of type {}'.format(
+            type(array))
+
+        if not backend:
+            backend = ApolloPyArrayBackendNumpy()
+
         if isinstance(array, ApolloPyArray):
             array = array.array
 
         out = cls()
         out.array = array
+        out.backend = backend
         return out
 
     @staticmethod
@@ -69,19 +82,19 @@ class ApolloPyArray:
         return ApolloPyArray.new_with_backend(a, backend)
 
     def mul(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array @ other.array)
+        return ApolloPyArray.new(self.array @ other.array, self.backend)
 
     def __matmul__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
         return self.mul(other)
 
     def add(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array + other.array)
+        return ApolloPyArray.new(self.array + other.array, self.backend)
 
     def __add__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
         return self.add(other)
 
     def sub(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array - other.array)
+        return ApolloPyArray.new(self.array - other.array, self.backend)
 
     def __sub__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
         return self.sub(other)
@@ -90,7 +103,7 @@ class ApolloPyArray:
         if isinstance(scalar, ApolloPyArray):
             assert scalar.is_scalar()
             scalar = scalar.array.array
-        return ApolloPyArray.new(scalar * self.array)
+        return ApolloPyArray.new(scalar * self.array, self.backend)
 
     def __mul__(self, scalar) -> 'ApolloPyArray':
         return self.scalar_mul(scalar)
@@ -99,13 +112,13 @@ class ApolloPyArray:
         return self.scalar_mul(scalar)
 
     def __neg__(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(-1.0*self.array)
+        return ApolloPyArray.new(-1.0 * self.array, self.backend)
 
     def scalar_div(self, scalar) -> 'ApolloPyArray':
         if isinstance(scalar, ApolloPyArray):
             assert scalar.is_scalar()
             scalar = scalar.array.array
-        return ApolloPyArray.new(self.array / scalar)
+        return ApolloPyArray.new(self.array / scalar, self.backend)
 
     def __truediv__(self, scalar) -> 'ApolloPyArray':
         return self.scalar_div(scalar)
@@ -114,14 +127,14 @@ class ApolloPyArray:
         return self.power(scalar)
 
     def transpose(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.transpose())
+        return ApolloPyArray.new(self.array.transpose(), self.backend)
 
     @property
     def T(self):
         return self.transpose()
 
     def resize(self, new_shape: Tuple[int, ...]) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.resize(new_shape))
+        return ApolloPyArray.new(self.array.resize(new_shape), self.backend)
 
     @property
     def shape(self):
@@ -131,97 +144,100 @@ class ApolloPyArray:
         return len(self.shape) == 0
 
     def diagonalize(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.diagonalize())
+        return ApolloPyArray.new(self.array.diagonalize(), self.backend)
 
     def inv(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.inv())
+        return ApolloPyArray.new(self.array.inv(), self.backend)
 
     def pinv(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.pinv())
+        return ApolloPyArray.new(self.array.pinv(), self.backend)
 
     def det(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.det())
+        return ApolloPyArray.new(self.array.det(), self.backend)
+
+    def matrix_rank(self) -> int:
+        return self.array.matrix_rank()
 
     def trace(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.trace())
+        return ApolloPyArray.new(self.array.trace(), self.backend)
 
     def matrix_exp(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.matrix_exp())
+        return ApolloPyArray.new(self.array.matrix_exp(), self.backend)
 
     def l1_norm(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.l1_norm())
+        return ApolloPyArray.new(self.array.l1_norm(), self.backend)
 
     def linf_norm(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.linf_norm())
+        return ApolloPyArray.new(self.array.linf_norm(), self.backend)
 
     def p_norm(self, p) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.p_norm(p))
+        return ApolloPyArray.new(self.array.p_norm(p), self.backend)
 
     def dot(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.dot(other.array))
+        return ApolloPyArray.new(self.array.dot(other.array), self.backend)
 
-    def svd(self, full_matrices: bool = True) -> 'SVDResult':
-        return self.array.svd(full_matrices)
+    # def svd(self, full_matrices: bool = True) -> 'SVDResult':
+    #     return self.array.svd(full_matrices)
 
     def to_numpy_array(self):
         return self.array.to_numpy_array()
 
     def cross(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.cross(other.array))
+        return ApolloPyArray.new(self.array.cross(other.array), self.backend)
 
     def sin(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.sin())
+        return ApolloPyArray.new(self.array.sin(), self.backend)
 
     def cos(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.cos())
+        return ApolloPyArray.new(self.array.cos(), self.backend)
 
     def tan(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.tan())
+        return ApolloPyArray.new(self.array.tan(), self.backend)
 
     def arcsin(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.arcsin())
+        return ApolloPyArray.new(self.array.arcsin(), self.backend)
 
     def arccos(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.arccos())
+        return ApolloPyArray.new(self.array.arccos(), self.backend)
 
     def arctan(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.arctan())
+        return ApolloPyArray.new(self.array.arctan(), self.backend)
 
     def sinh(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.sinh())
+        return ApolloPyArray.new(self.array.sinh(), self.backend)
 
     def cosh(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.cosh())
+        return ApolloPyArray.new(self.array.cosh(), self.backend)
 
     def tanh(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.tanh())
+        return ApolloPyArray.new(self.array.tanh(), self.backend)
 
     def exp(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.exp())
+        return ApolloPyArray.new(self.array.exp(), self.backend)
 
     def log(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.log())
+        return ApolloPyArray.new(self.array.log(), self.backend)
 
     def log10(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.log10())
+        return ApolloPyArray.new(self.array.log10(), self.backend)
 
     def sqrt(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.sqrt())
+        return ApolloPyArray.new(self.array.sqrt(), self.backend)
 
     def abs(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.abs())
+        return ApolloPyArray.new(self.array.abs(), self.backend)
 
     def floor(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.floor())
+        return ApolloPyArray.new(self.array.floor(), self.backend)
 
     def ceil(self) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.ceil())
+        return ApolloPyArray.new(self.array.ceil(), self.backend)
 
     def power(self, exponent) -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array.power(exponent))
+        return ApolloPyArray.new(self.array.power(exponent), self.backend)
 
     def __getitem__(self, index):
-        return ApolloPyArray.new(self.array.__getitem__(index))
+        return ApolloPyArray.new(self.array.__getitem__(index), self.backend)
 
     def __setitem__(self, index, value):
         if isinstance(value, ApolloPyArray):
@@ -246,6 +262,10 @@ class ApolloPyArray:
     def is_torch(self):
         return self.type() == ApolloPyArrayTorch
 
+    def set_torch_requires_grad(self, requires_grad: bool):
+        assert self.is_torch()
+        self.array.array.requires_grad_(requires_grad)
+
 
 class ApolloPyArrayBackend:
     def create_array(self, row_major_values) -> T:
@@ -254,7 +274,65 @@ class ApolloPyArrayBackend:
 
 class ApolloPyArrayBackendNumpy(ApolloPyArrayBackend):
     def create_array(self, row_major_values) -> 'ApolloPyArrayNumpy':
-        return ApolloPyArrayNumpy(np.array(row_major_values))
+        if isinstance(row_major_values, float) or isinstance(row_major_values, int):
+            return ApolloPyArrayNumpy(np.array(row_major_values))
+
+        if isinstance(row_major_values[0], list):
+            num_rows = len(row_major_values)
+            num_cols = len(row_major_values[0])
+            array = np.zeros((num_rows, num_cols))
+            out = ApolloPyArrayJAX(jnp.array(array))
+            for i in range(num_rows):
+                for j in range(num_cols):
+                    if isinstance(row_major_values, ApolloPyArrayNumpy):
+                        val = row_major_values[i, j]
+                    elif isinstance(row_major_values, np.ndarray):
+                        val = row_major_values[i, j]
+                    elif isinstance(row_major_values, jnp.ndarray):
+                        val = row_major_values[i, j]
+                    elif isinstance(row_major_values, ApolloPyArray):
+                        val = row_major_values[i, j]
+                    elif isinstance(row_major_values, list):
+                        val = row_major_values[i][j]
+                    else:
+                        raise ValueError('not a legal input')
+
+                    if isinstance(val, ApolloPyArray):
+                        val = val.array.array
+                    elif isinstance(val, ApolloPyArrayNumpy):
+                        val = val.array
+                    elif isinstance(val, np.ndarray) or isinstance(val, jnp.ndarray) or isinstance(val,
+                                                                                                   float) or isinstance(
+                        val, int) or isinstance(val, np.float32) or isinstance(val, np.float64):
+                        val = val
+                    else:
+                        raise ValueError('not a legal input', 'val is of type {}'.format(type(val)))
+
+                    out[i, j] = val
+
+            return out
+        else:
+            num_rows = len(row_major_values)
+            array = np.zeros((num_rows,))
+            out = ApolloPyArrayNumpy(array)
+
+            for i in range(num_rows):
+                val = row_major_values[i]
+
+                if isinstance(val, ApolloPyArray):
+                    val = val.array.array
+                elif isinstance(val, ApolloPyArrayJAX):
+                    val = val.array
+                elif isinstance(val, np.ndarray) or isinstance(val, jnp.ndarray) or isinstance(val,
+                                                                                               float) or isinstance(
+                    val, int):
+                    val = val
+                else:
+                    raise ValueError('not a legal input')
+
+                out[i] = val
+
+            return out
 
 
 class ApolloPyArrayABC:
@@ -317,6 +395,9 @@ class ApolloPyArrayABC:
         raise NotImplementedError('abstract base class')
 
     def det(self) -> T:
+        raise NotImplementedError('abstract base class')
+
+    def matrix_rank(self) -> int:
         raise NotImplementedError('abstract base class')
 
     def trace(self) -> T:
@@ -453,6 +534,9 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
     def det(self) -> 'ApolloPyArrayNumpy':
         return ApolloPyArrayNumpy(np.linalg.det(self.array))
 
+    def matrix_rank(self) -> int:
+        return np.linalg.matrix_rank(self.array)
+
     def trace(self) -> 'ApolloPyArrayNumpy':
         return ApolloPyArrayNumpy(np.linalg.trace(self.array))
 
@@ -471,12 +555,12 @@ class ApolloPyArrayNumpy(ApolloPyArrayABC):
     def dot(self, other: 'ApolloPyArrayNumpy') -> 'ApolloPyArrayNumpy':
         return ApolloPyArrayNumpy(self.array.dot(other.array))
 
-    def svd(self, full_matrices: bool = False) -> 'SVDResult':
-        U, S, VT = np.linalg.svd(self.array, full_matrices=full_matrices)
-        U = ApolloPyArrayNumpy(U)
-        S = ApolloPyArrayNumpy(S)
-        VT = ApolloPyArrayNumpy(VT)
-        return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
+    # def svd(self, full_matrices: bool = False) -> 'SVDResult':
+    #     U, S, VT = np.linalg.svd(self.array, full_matrices=full_matrices)
+    #     U = ApolloPyArrayNumpy(U)
+    #     S = ApolloPyArrayNumpy(S)
+    #     VT = ApolloPyArrayNumpy(VT)
+    #     return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
 
     def to_numpy_array(self) -> np.ndarray:
         return self.array
@@ -560,12 +644,65 @@ if HAS_JAX:
             self.dtype = dtype
 
         def create_array(self, row_major_values) -> 'ApolloPyArrayJAX':
-            # Convert to specified dtype or infer from input
-            array = jnp.array(row_major_values, dtype=self.dtype)
+            if isinstance(row_major_values, float) or isinstance(row_major_values, int):
+                return ApolloPyArrayJAX(jnp.array(row_major_values, device=self.device, dtype=self.dtype))
 
-            # Place on specified device
-            with jax.default_device(self.device):
-                return ApolloPyArrayJAX(array)
+            if isinstance(row_major_values[0], list):
+                num_rows = len(row_major_values)
+                num_cols = len(row_major_values[0])
+                array = jnp.zeros((num_rows, num_cols), dtype=self.dtype, device=self.device)
+                out = ApolloPyArrayJAX(jnp.array(array, device=self.device, dtype=self.dtype))
+                for i in range(num_rows):
+                    for j in range(num_cols):
+                        if isinstance(row_major_values, ApolloPyArrayJAX):
+                            val = row_major_values[i, j]
+                        elif isinstance(row_major_values, np.ndarray):
+                            val = row_major_values[i, j]
+                        elif isinstance(row_major_values, jnp.ndarray):
+                            val = row_major_values[i, j]
+                        elif isinstance(row_major_values, ApolloPyArray):
+                            val = row_major_values[i, j]
+                        elif isinstance(row_major_values, list):
+                            val = row_major_values[i][j]
+                        else:
+                            raise ValueError('not a legal input')
+
+                        if isinstance(val, ApolloPyArray):
+                            val = val.array.array
+                        elif isinstance(val, ApolloPyArrayJAX):
+                            val = val.array
+                        elif isinstance(val, np.ndarray) or isinstance(val, jnp.ndarray) or isinstance(val,
+                                                                                                       float) or isinstance(
+                                val, int) or isinstance(val, np.float32) or isinstance(val, np.float64):
+                            val = val
+                        else:
+                            raise ValueError('not a legal input', 'val is of type {}'.format(type(val)))
+
+                        out[i, j] = val
+
+                return out
+            else:
+                num_rows = len(row_major_values)
+                array = jnp.zeros((num_rows,), dtype=self.dtype, device=self.device)
+                out = ApolloPyArrayJAX(array)
+
+                for i in range(num_rows):
+                    val = row_major_values[i]
+
+                    if isinstance(val, ApolloPyArray):
+                        val = val.array.array
+                    elif isinstance(val, ApolloPyArrayJAX):
+                        val = val.array
+                    elif isinstance(val, np.ndarray) or isinstance(val, jnp.ndarray) or isinstance(val,
+                                                                                                   float) or isinstance(
+                        val, int):
+                        val = val
+                    else:
+                        raise ValueError('not a legal input')
+
+                    out[i] = val
+
+                return out
 
 
     class ApolloPyArrayJAX(ApolloPyArrayABC):
@@ -614,6 +751,9 @@ if HAS_JAX:
         def det(self) -> 'ApolloPyArrayJAX':
             return ApolloPyArrayJAX(jnp.linalg.det(self.array))
 
+        def matrix_rank(self) -> int:
+            return jnp.linalg.matrix_rank(self.array)
+
         def trace(self) -> 'ApolloPyArrayJAX':
             return ApolloPyArrayJAX(jnp.linalg.trace(self.array))
 
@@ -632,12 +772,12 @@ if HAS_JAX:
         def dot(self, other: 'ApolloPyArrayJAX') -> 'ApolloPyArrayJAX':
             return ApolloPyArrayJAX(self.array.dot(other.array))
 
-        def svd(self, full_matrices: bool = False) -> 'SVDResult':
-            U, S, VT = jnp.linalg.svd(self.array, full_matrices=full_matrices)
-            U = ApolloPyArrayJAX(U)
-            S = ApolloPyArrayJAX(S)
-            VT = ApolloPyArrayJAX(VT)
-            return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
+        # def svd(self, full_matrices: bool = False) -> 'SVDResult':
+        #     U, S, VT = jnp.linalg.svd(self.array, full_matrices=full_matrices)
+        #     U = ApolloPyArrayJAX(U)
+        #     S = ApolloPyArrayJAX(S)
+        #     VT = ApolloPyArrayJAX(VT)
+        #     return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
 
         def to_numpy_array(self) -> np.ndarray:
             return np.array(self.array)
@@ -720,13 +860,72 @@ if HAS_PYTORCH:
             self.dtype = dtype or torch.float64
 
         def create_array(self, row_major_values) -> 'ApolloPyArrayTorch':
-            return ApolloPyArrayTorch(
-                torch.tensor(
-                    row_major_values,
-                    device=self.device,
-                    dtype=self.dtype
-                )
-            )
+            # return ApolloPyArrayTorch(
+            #     torch.tensor(
+            #         row_major_values,
+            #         device=self.device,
+            #         dtype=self.dtype
+            #     )
+            # )
+            if isinstance(row_major_values, float) or isinstance(row_major_values, int):
+                return ApolloPyArrayTorch(torch.tensor(row_major_values, device=self.device, dtype=self.dtype))
+
+            if isinstance(row_major_values[0], list):
+                num_rows = len(row_major_values)
+                num_cols = len(row_major_values[0])
+                array = torch.zeros((num_rows, num_cols), dtype=self.dtype, device=self.device)
+                out = ApolloPyArrayTorch(array)
+                for i in range(num_rows):
+                    for j in range(num_cols):
+                        if isinstance(row_major_values, ApolloPyArrayTorch):
+                            val = row_major_values[i, j]
+                        elif isinstance(row_major_values, np.ndarray):
+                            val = row_major_values[i, j]
+                        elif isinstance(row_major_values, jnp.ndarray):
+                            val = row_major_values[i, j]
+                        elif isinstance(row_major_values, ApolloPyArray):
+                            val = row_major_values[i, j]
+                        elif isinstance(row_major_values, list):
+                            val = row_major_values[i][j]
+                        else:
+                            raise ValueError('not a legal input')
+
+                        if isinstance(val, ApolloPyArray):
+                            val = val.array.array
+                        elif isinstance(val, ApolloPyArrayTorch):
+                            val = val.array
+                        elif isinstance(val, np.ndarray) or isinstance(val, jnp.ndarray) or isinstance(val,
+                                                                                                       float) or isinstance(
+                                val, int) or isinstance(val, np.float32) or isinstance(val, np.float64):
+                            val = val
+                        else:
+                            raise ValueError('not a legal input', 'val is of type {}'.format(type(val)))
+
+                        out[i, j] = val
+
+                return out
+            else:
+                num_rows = len(row_major_values)
+                array = torch.zeros((num_rows,), dtype=self.dtype, device=self.device)
+                out = ApolloPyArrayTorch(array)
+
+                for i in range(num_rows):
+                    val = row_major_values[i]
+
+                    if isinstance(val, ApolloPyArray):
+                        val = val.array.array
+                    elif isinstance(val, ApolloPyArrayTorch):
+                        val = val.array
+                    elif isinstance(val, np.ndarray) or isinstance(val, jnp.ndarray) or isinstance(val,
+                                                                                                   float) or isinstance(
+                        val, int):
+                        val = val
+                    else:
+                        raise ValueError('not a legal input')
+
+                    out[i] = val
+
+                return out
 
 
     class ApolloPyArrayTorch(ApolloPyArrayABC):
@@ -775,6 +974,9 @@ if HAS_PYTORCH:
         def det(self) -> 'ApolloPyArrayTorch':
             return ApolloPyArrayTorch(self.array.det())
 
+        def matrix_rank(self) -> int:
+            return torch.linalg.matrix_rank(self.array).item()
+
         def trace(self) -> 'ApolloPyArrayTorch':
             return ApolloPyArrayTorch(self.array.trace())
 
@@ -793,12 +995,12 @@ if HAS_PYTORCH:
         def dot(self, other: 'ApolloPyArrayTorch') -> 'ApolloPyArrayTorch':
             return ApolloPyArrayTorch(torch.dot(self.array, other.array))
 
-        def svd(self, full_matrices: bool = False) -> 'SVDResult':
-            U, S, VT = torch.linalg.svd(self.array, full_matrices=full_matrices)
-            U = ApolloPyArrayTorch(U)
-            S = ApolloPyArrayTorch(S)
-            VT = ApolloPyArrayTorch(VT)
-            return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
+        # def svd(self, full_matrices: bool = False) -> 'SVDResult':
+        #     U, S, VT = torch.linalg.svd(self.array, full_matrices=full_matrices)
+        #     U = ApolloPyArrayTorch(U)
+        #     S = ApolloPyArrayTorch(S)
+        #     VT = ApolloPyArrayTorch(VT)
+        #     return SVDResult(ApolloPyArray.new(U), ApolloPyArray.new(S), ApolloPyArray.new(VT))
 
         def to_numpy_array(self) -> np.ndarray:
             out = self.array.cpu().detach()
