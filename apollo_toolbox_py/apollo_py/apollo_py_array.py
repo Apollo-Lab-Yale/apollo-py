@@ -98,7 +98,11 @@ class ApolloPyArray:
         return self.add(other)
 
     def sub(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array - other.array, self.backend)
+        if isinstance(other, ApolloPyArray):
+            return ApolloPyArray.new(self.array - other.array, self.backend)
+        else:
+            other = ApolloPyArray.new(self.backend.create_array(other), self.backend)
+            return self.sub(other)
 
     def __sub__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
         return self.sub(other)
@@ -128,6 +132,9 @@ class ApolloPyArray:
         return self.scalar_div(scalar)
 
     def __pow__(self, scalar) -> 'ApolloPyArray':
+        if isinstance(scalar, ApolloPyArray):
+            assert scalar.is_scalar()
+            scalar = scalar.array.array
         return self.power(scalar)
 
     def transpose(self) -> 'ApolloPyArray':
