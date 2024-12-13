@@ -67,7 +67,6 @@ class Rotation3(M3):
 
         return cls(rotation_matrix)
 
-    '''
     @classmethod
     def from_axis_angle(cls, axis: V3, angle) -> 'Rotation3':
         if angle == 0.0:
@@ -88,20 +87,19 @@ class Rotation3(M3):
         one_minus_cos = 1.0 - cos_theta
 
         rotation_matrix = [
-            [cos_theta + x * x * one_minus_cos,
+            [x * x * one_minus_cos + cos_theta,
              x * y * one_minus_cos - z * sin_theta,
              x * z * one_minus_cos + y * sin_theta],
             [y * x * one_minus_cos + z * sin_theta,
-             cos_theta + y * y * one_minus_cos,
+             y * y * one_minus_cos + cos_theta,
              y * z * one_minus_cos - x * sin_theta],
             [z * x * one_minus_cos - y * sin_theta,
              z * y * one_minus_cos + x * sin_theta,
-             cos_theta + z * z * one_minus_cos]
+             z * z * one_minus_cos + cos_theta]
         ]
-        rotation_matrix = ApolloPyArray.new(rotation_matrix, backend=axis.array.backend)
+        rotation_matrix = ApolloPyArray.new_with_backend(rotation_matrix, backend=axis.array.backend)
 
         return cls(rotation_matrix)
-    '''
 
     @classmethod
     def from_scaled_axis(cls, scaled_axis: V3) -> 'Rotation3':

@@ -46,7 +46,7 @@ class ApolloPyArray:
             return cls.new_with_backend(array, backend)
 
         assert issubclass(type(array), ApolloPyArrayABC) or isinstance(array,
-                                                                       ApolloPyArray), 'array is of type {}'.format(
+                                                                       ApolloPyArray), 'array is of type {}.  You should probably use new_with_backend'.format(
             type(array))
 
         if not backend:
