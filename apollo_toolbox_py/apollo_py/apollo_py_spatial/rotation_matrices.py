@@ -1,8 +1,6 @@
-
-
 __all__ = ['Rotation3']
 
-from typing import Union, List
+from typing import Union, List, TypeVar
 
 import numpy as np
 
@@ -10,31 +8,33 @@ from apollo_toolbox_py.apollo_py.apollo_py_array import ApolloPyArray
 from apollo_toolbox_py.apollo_py.apollo_py_linalg.matrices import M3
 from apollo_toolbox_py.apollo_py.apollo_py_linalg.vectors import V3
 
+B = TypeVar('B', bound='ApolloPyArrayBackend')
+
 
 class Rotation3(M3):
     def __init__(self, array: Union[List[List[float]], np.ndarray, ApolloPyArray]):
         super().__init__(array)
-        # if not np.allclose(self.array @ self.array.T, np.eye(3), rtol=1e-7, atol=1e-7):
-        #     raise ValueError("Rotation matrix must be orthonormal.")
+        if not (self.array @ self.array.T).isclose(np.eye(3), tol=1e-7):
+            raise ValueError("Rotation matrix must be orthonormal.")
 
     @classmethod
-    def new_unchecked(cls, array: Union[List[List[float]], np.ndarray]) -> 'Rotation3':
+    def new_unchecked(cls, array: Union[List[List[float]], np.ndarray, ApolloPyArray]) -> 'Rotation3':
         out = cls.__new__(cls)
         out.array = array
         return out
 
-    @classmethod
-    def new_normalize(cls, array: Union[List[List[float]], np.ndarray, ApolloPyArray]) -> 'Rotation3':
-        array = np.asarray(array, dtype=np.float64)
+    # @classmethod
+    # def new_normalize(cls, array: Union[List[List[float]], np.ndarray, ApolloPyArray]) -> 'Rotation3':
+    #     array = np.asarray(array, dtype=np.float64)
 
-        u, _, vh = np.linalg.svd(array)
-        array = np.dot(u, vh)
+    #     u, _, vh = np.linalg.svd(array)
+    #     array = np.dot(u, vh)
 
-        if np.linalg.det(array) < 0:
-            u[:, -1] *= -1
-            array = np.dot(u, vh)
+    #     if np.linalg.det(array) < 0:
+    #         u[:, -1] *= -1
+    #         array = np.dot(u, vh)
 
-        return cls.new_unchecked(array)
+    #     return cls.new_unchecked(array)
 
     @classmethod
     def from_euler_angles(cls, xyz: V3) -> 'Rotation3':
@@ -67,18 +67,27 @@ class Rotation3(M3):
 
         return cls(rotation_matrix)
 
+    '''
     @classmethod
-    def from_axis_angle(cls, axis: V3, angle: float) -> 'Rotation3':
+    def from_axis_angle(cls, axis: V3, angle) -> 'Rotation3':
         if angle == 0.0:
             return Rotation3.new_unchecked(np.eye(3))
 
         axis = axis.normalize()
-        x, y, z = axis
-        cos_theta = np.cos(angle)
-        sin_theta = np.sin(angle)
-        one_minus_cos = 1 - cos_theta
+        x = axis[0]
+        y = axis[1]
+        z = axis[2]
 
-        rotation_matrix = np.array([
+        if isinstance(angle, ApolloPyArray):
+            cos_theta = angle.cos()
+            sin_theta = angle.sin()
+        else:
+            cos_theta = np.cos(angle)
+            sin_theta = np.sin(angle)
+
+        one_minus_cos = 1.0 - cos_theta
+
+        rotation_matrix = [
             [cos_theta + x * x * one_minus_cos,
              x * y * one_minus_cos - z * sin_theta,
              x * z * one_minus_cos + y * sin_theta],
@@ -88,9 +97,11 @@ class Rotation3(M3):
             [z * x * one_minus_cos - y * sin_theta,
              z * y * one_minus_cos + x * sin_theta,
              cos_theta + z * z * one_minus_cos]
-        ])
+        ]
+        rotation_matrix = ApolloPyArray.new(rotation_matrix, backend=axis.array.backend)
 
         return cls(rotation_matrix)
+    '''
 
     @classmethod
     def from_scaled_axis(cls, scaled_axis: V3) -> 'Rotation3':
@@ -165,7 +176,7 @@ class Rotation3(M3):
     '''
 
     def map_point(self, v: V3) -> 'V3':
-        return V3(self.array@v.array)
+        return V3(self.array @ v.array)
 
     '''
     def to_lie_group_so3(self):

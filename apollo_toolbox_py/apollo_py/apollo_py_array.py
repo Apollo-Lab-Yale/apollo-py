@@ -87,10 +87,14 @@ class ApolloPyArray:
     def __matmul__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
         return self.mul(other)
 
-    def add(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
-        return ApolloPyArray.new(self.array + other.array, self.backend)
+    def add(self, other) -> 'ApolloPyArray':
+        if isinstance(other, ApolloPyArray):
+            return ApolloPyArray.new(self.array + other.array, self.backend)
+        else:
+            other = ApolloPyArray.new(self.backend.create_array(other), self.backend)
+            return self.add(other)
 
-    def __add__(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
+    def __add__(self, other) -> 'ApolloPyArray':
         return self.add(other)
 
     def sub(self, other: 'ApolloPyArray') -> 'ApolloPyArray':
@@ -294,7 +298,10 @@ class ApolloPyArrayBackend:
 
 class ApolloPyArrayBackendNumpy(ApolloPyArrayBackend):
     def create_array(self, row_major_values) -> 'ApolloPyArrayNumpy':
-        if isinstance(row_major_values, float) or isinstance(row_major_values, int):
+        if isinstance(row_major_values, float) or isinstance(row_major_values, int) or isinstance(row_major_values,
+                                                                                                  np.float64) or isinstance(
+                row_major_values, np.float32) or (
+                isinstance(row_major_values, np.ndarray) and row_major_values.shape == ()):
             return ApolloPyArrayNumpy(np.array(row_major_values))
 
         if isinstance(row_major_values[0], list):
@@ -692,7 +699,7 @@ if HAS_JAX:
             self.dtype = dtype
 
         def create_array(self, row_major_values) -> 'ApolloPyArrayJAX':
-            if isinstance(row_major_values, float) or isinstance(row_major_values, int):
+            if isinstance(row_major_values, float) or isinstance(row_major_values, int) or isinstance(row_major_values, np.float64) or isinstance(row_major_values, np.float32) or (isinstance(row_major_values, np.ndarray) and row_major_values.shape == ()):
                 return ApolloPyArrayJAX(jnp.array(row_major_values, device=self.device, dtype=self.dtype))
 
             if isinstance(row_major_values[0], list):
@@ -943,7 +950,7 @@ if HAS_PYTORCH:
             #         dtype=self.dtype
             #     )
             # )
-            if isinstance(row_major_values, float) or isinstance(row_major_values, int):
+            if isinstance(row_major_values, float) or isinstance(row_major_values, int) or isinstance(row_major_values, np.float64) or isinstance(row_major_values, np.float32) or (isinstance(row_major_values, np.ndarray) and row_major_values.shape == ()):
                 return ApolloPyArrayTorch(torch.tensor(row_major_values, device=self.device, dtype=self.dtype))
 
             if isinstance(row_major_values[0], list):
