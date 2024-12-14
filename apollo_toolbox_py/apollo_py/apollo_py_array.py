@@ -944,7 +944,7 @@ if HAS_JAX:
         def __setitem__(self, key, value):
             if isinstance(value, ApolloPyArrayJAX):
                 value = value.array
-            self.array = self.array.at[key].set(value)
+            self.array = self.array.at[key].set_and_return(value)
 
 if HAS_PYTORCH:
     class ApolloPyArrayBackendTorch(ApolloPyArrayBackend):
