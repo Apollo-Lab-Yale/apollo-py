@@ -99,7 +99,7 @@ class M:
 class M3(M):
     def __init__(self, array: Union[List[List[float]], np.ndarray], device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
-        super().__init__(array)
+        super().__init__(array, device, dtype)
         if self.array.shape != (3, 3):
             raise ValueError("Matrix3 must be a 3x3 matrix.")
 
