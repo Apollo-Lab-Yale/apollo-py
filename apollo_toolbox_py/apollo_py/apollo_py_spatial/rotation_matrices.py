@@ -19,9 +19,10 @@ class Rotation3(M3):
 
     @classmethod
     def new_unchecked(cls, array: Union[List[List[float]], np.ndarray, ApolloPyArray]) -> 'Rotation3':
-        out = cls.__new__(cls)
-        out.array = array
-        return out
+        # out = cls.__new__(cls)
+        # out.__init__(array)
+        # return out
+        pass
 
     # @classmethod
     # def new_normalize(cls, array: Union[List[List[float]], np.ndarray, ApolloPyArray]) -> 'Rotation3':
@@ -70,7 +71,7 @@ class Rotation3(M3):
     @classmethod
     def from_axis_angle(cls, axis: V3, angle) -> 'Rotation3':
         if angle == 0.0:
-            return Rotation3.new_unchecked(np.eye(3))
+            return Rotation3(np.eye(3))
 
         axis = axis.normalize()
         x = axis[0]
@@ -84,7 +85,7 @@ class Rotation3(M3):
             cos_theta = np.cos(angle)
             sin_theta = np.sin(angle)
 
-        one_minus_cos = 1.0 - cos_theta
+        one_minus_cos = -cos_theta + 1.0
 
         rotation_matrix = [
             [x * x * one_minus_cos + cos_theta,
@@ -112,7 +113,8 @@ class Rotation3(M3):
         axis = axis.normalize()
 
         rotation_axis = axis.cross(look_at_vector)
-        angle = np.acos(min(axis.dot(look_at_vector), 1.0))
+        # angle = np.acos(min(axis.dot(look_at_vector), 1.0))
+        angle = axis.dot(look_at_vector).arccos()
 
         return Rotation3.from_axis_angle(rotation_axis, angle)
 
