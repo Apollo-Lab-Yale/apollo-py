@@ -4,6 +4,8 @@ import numpy as np
 from tensorly import backend as T
 from apollo_toolbox_py.apollo_py.extra_tensorly_backend import ExtraBackend as T2, Device, DType
 
+__all__ = ['M', 'M3']
+
 
 class M:
     def __init__(self, array: Union[List[List[float]], np.ndarray], device: Device = Device.CPU,
@@ -48,20 +50,16 @@ class M:
     def rank(self) -> int:
         return T2.matrix_rank(self.array)
 
-    def eigenvalues(self) -> np.ndarray:
-        return np.linalg.eigvals(self.array)
-
-    def eigenvectors(self) -> 'M':
-        _, vectors = np.linalg.eig(self.array)
-        return M(vectors.T)
+    def eigvals(self) -> np.ndarray:
+        return T2.eigvals(self.array)
 
     def svd(self, full_matrices: bool = False) -> Tuple['M', np.ndarray, 'M']:
-        U, S, V = np.linalg.svd(self.array, full_matrices=full_matrices)
+        U, S, V = tl.svd(self.array, full_matrices=full_matrices)
         return M(U), S, M(V)
 
-    def eigenanalysis(self) -> Tuple[np.ndarray, 'M']:
-        values, vectors = np.linalg.eig(self.array)
-        return values, M(vectors.T)
+    def eig(self):
+        eigenvalues, eigenvectors = T2.eig(self.array)
+        return eigenvalues, M(eigenvectors)
 
     def __add__(self, other: Union['M', np.ndarray]) -> 'M':
         if isinstance(other, M):

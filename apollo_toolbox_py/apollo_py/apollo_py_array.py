@@ -265,7 +265,7 @@ class ApolloPyArray:
                 return False
             return np.isclose(n1, n2, atol=tol).all()
         else:
-            return self.array.isclose(other, tol)
+            return self.array.allclose(other, tol)
 
     def __getitem__(self, index):
         return ApolloPyArray.new(self.array.__getitem__(index), self.backend)

@@ -5,11 +5,12 @@ from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.matrices imp
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors import V, V3
 import tensorly as tl
 
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.rotation_matrices import Rotation3
+
 tl.set_backend('pytorch')
 
-a = M3(np.random.uniform(-1, 1, (3, 3)), Device.MPS, DType.Float32)
-b = M3(np.random.uniform(-1, 1, (3, 3)), Device.MPS, DType.Float32)
+a = Rotation3.new_normalize(np.random.uniform(-1, 1, (3, 3)))
+print(a.det())
 
-print(a@b)
 
 

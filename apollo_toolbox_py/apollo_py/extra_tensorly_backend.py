@@ -145,6 +145,36 @@ class ExtraBackend:
             raise ValueError(f'Backend {b} is not supported.')
 
     @staticmethod
+    def eig(tl_tensor):
+        b = T.get_backend()
+        if b == 'numpy':
+            return np.linalg.eig(tl_tensor)
+        elif b == 'jax':
+            return jnp.linalg.eig(tl_tensor)
+        elif b == 'pytorch':
+            return torch.linalg.eig(tl_tensor)
+        else:
+            raise ValueError(f'Backend {b} is not supported.')
+
+    @staticmethod
+    def eigvals(tl_tensor):
+        b = T.get_backend()
+        if b == 'numpy':
+            return np.linalg.eigvals(tl_tensor)
+        elif b == 'jax':
+            return jnp.linalg.eigvals(tl_tensor)
+        elif b == 'pytorch':
+            return torch.linalg.eigvals(tl_tensor)
+        else:
+            raise ValueError(f'Backend {b} is not supported.')
+
+    @staticmethod
+    def allclose(tl_tensor1, tl_tensor2, rtol=1e-05, atol=1e-05):
+        tl_tensor1 = tl.to_numpy(tl_tensor1)
+        tl_tensor2 = tl.to_numpy(tl_tensor2)
+        return np.allclose(tl_tensor1, tl_tensor2, rtol=rtol, atol=atol)
+
+    @staticmethod
     def set_and_return(tl_tensor, key, value):
         """
         for slices, make sure to use slice(), i.e., a : in traditional indexing can be replaced with slice(None)

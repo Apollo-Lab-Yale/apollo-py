@@ -5,6 +5,8 @@ from apollo_toolbox_py.apollo_py.extra_tensorly_backend import ExtraBackend as T
 
 import numpy as np
 
+__all__ = ['V', 'V3', 'V6']
+
 
 class V:
     def __init__(self, array: Union[List[float], np.ndarray], device: Device = Device.CPU,

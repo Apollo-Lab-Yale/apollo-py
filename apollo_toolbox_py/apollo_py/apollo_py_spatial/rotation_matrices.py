@@ -14,7 +14,7 @@ B = TypeVar('B', bound='ApolloPyArrayBackend')
 class Rotation3(M3):
     def __init__(self, array: Union[List[List[float]], np.ndarray, ApolloPyArray]):
         super().__init__(array)
-        if not (self.array @ self.array.T).isclose(np.eye(3), tol=1e-7):
+        if not (self.array @ self.array.T).allclose(np.eye(3), tol=1e-7):
             raise ValueError("Rotation matrix must be orthonormal.")
 
     @classmethod
