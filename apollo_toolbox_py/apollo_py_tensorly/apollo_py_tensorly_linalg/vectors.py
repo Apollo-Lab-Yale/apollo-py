@@ -21,13 +21,16 @@ class V:
     def __getitem__(self, item):
         return self.array[item]
 
+    def __setitem__(self, key, value):
+        self.array = T2.set_and_return(self.array, key, value)
+
     def set_and_return(self, key, value):
         return self.__class__(T2.set_and_return(self.array, key, value))
 
     def dot(self, other):
         if isinstance(other, V):
             other = other.array
-        return np.dot(self.array, other)
+        return tl.dot(self.array, other)
 
     def norm(self, ord=2):
         return tl.norm(self.array, order=ord)

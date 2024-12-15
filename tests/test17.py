@@ -7,10 +7,12 @@ import tensorly as tl
 
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.rotation_matrices import Rotation3
 
-tl.set_backend('pytorch')
+tl.set_backend('numpy')
 
-a = Rotation3.new_normalize(np.random.uniform(-1, 1, (3, 3)))
-print(a.det())
-
+v = V3([1., 2., 3.], Device.CPU, DType.Float64)
+v2 = V3([0.2, -0.4, 0.7], Device.CPU, DType.Float64)
+# v.array.requires_grad = True
+r = Rotation3.from_look_at(v, v2)
+print(r.map_point(v))
 
 

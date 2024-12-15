@@ -175,6 +175,18 @@ class ExtraBackend:
         return np.allclose(tl_tensor1, tl_tensor2, rtol=rtol, atol=atol)
 
     @staticmethod
+    def arctan2(tl_tensor1, tl_tensor2):
+        b = T.get_backend()
+        if b == 'numpy':
+            return np.arctan2(tl_tensor1, tl_tensor2)
+        elif b == 'jax':
+            return jnp.arctan2(tl_tensor1, tl_tensor2)
+        elif b == 'pytorch':
+            return torch.arctan2(tl_tensor1, tl_tensor2)
+        else:
+            raise ValueError(f'Backend {b} is not supported.')
+
+    @staticmethod
     def set_and_return(tl_tensor, key, value):
         """
         for slices, make sure to use slice(), i.e., a : in traditional indexing can be replaced with slice(None)

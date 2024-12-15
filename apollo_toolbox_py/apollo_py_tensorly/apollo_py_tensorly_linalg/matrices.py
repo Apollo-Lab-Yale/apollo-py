@@ -20,6 +20,9 @@ class M:
     def __getitem__(self, item):
         return self.array[item]
 
+    def __setitem__(self, key, value):
+        self.array = T2.set_and_return(self.array, key, value)
+
     def set_and_return(self, key, value):
         return self.__class__(T2.set_and_return(self.array, key, value))
 
