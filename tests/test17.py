@@ -5,14 +5,15 @@ from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.matrices imp
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors import V, V3
 import tensorly as tl
 
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.quaternions import Quaternion, UnitQuaternion
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.rotation_matrices import Rotation3
 
 tl.set_backend('numpy')
 
-v = V3([1., 2., 3.], Device.CPU, DType.Float64)
-v2 = V3([0.2, -0.4, 0.7], Device.CPU, DType.Float64)
-# v.array.requires_grad = True
-r = Rotation3.from_look_at(v, v2)
-print(r.map_point(v))
+e = V3([1., 2., 3.])
+# e.array.requires_grad = True
+q = UnitQuaternion.from_scaled_axis(e)
+print(q.inverse() @ q)
+
 
 

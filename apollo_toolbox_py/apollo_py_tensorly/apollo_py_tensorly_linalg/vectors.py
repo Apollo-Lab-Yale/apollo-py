@@ -100,6 +100,20 @@ class V3(V):
         return f"V3(\n{self.array}\n)"
 
 
+class V4(V):
+    def __init__(self, array: Union[List[float], np.ndarray], device: Device = Device.CPU,
+                 dtype: DType = DType.Float64):
+        super().__init__(array, device, dtype)
+        if self.array.shape != (4,):
+            raise ValueError("V4 must be a 4-vector.")
+
+    def __repr__(self) -> str:
+        return f"V4(\n{self.array}\n)"
+
+    def __str__(self) -> str:
+        return f"V4(\n{self.array}\n)"
+
+
 class V6(V):
     def __init__(self, array: Union[List[float], np.ndarray], device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
