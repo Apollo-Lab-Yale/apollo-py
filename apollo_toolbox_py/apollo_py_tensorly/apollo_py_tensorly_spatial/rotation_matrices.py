@@ -41,26 +41,26 @@ class Rotation3(M3):
     def from_euler_angles(cls, xyz: V3) -> 'Rotation3':
         roll, pitch, yaw = xyz.array
 
-        R_x = tl.zeros((3, 3), device=xyz.array.device, dtype=xyz.array.dtype)
-        R_x = T2.set_and_return(R_x, (0, 0), 1.0)
-        R_x = T2.set_and_return(R_x, (1, 1), tl.cos(roll))
-        R_x = T2.set_and_return(R_x, (1, 2), -tl.sin(roll))
-        R_x = T2.set_and_return(R_x, (2, 1), tl.sin(roll))
-        R_x = T2.set_and_return(R_x, (2, 2), tl.cos(roll))
+        R_x = [
+            [1, 0, 0],
+            [0, tl.cos(roll), -tl.sin(roll)],
+            [0, tl.sin(roll), tl.cos(roll)]
+        ]
+        R_x = T2.new_from_heterogeneous_array(R_x)
 
-        R_y = tl.zeros((3, 3), device=xyz.array.device, dtype=xyz.array.dtype)
-        R_y = T2.set_and_return(R_y, (1, 1), 1.0)
-        R_y = T2.set_and_return(R_y, (0, 0), tl.cos(pitch))
-        R_y = T2.set_and_return(R_y, (0, 2), tl.sin(pitch))
-        R_y = T2.set_and_return(R_y, (2, 0), -tl.sin(pitch))
-        R_y = T2.set_and_return(R_y, (2, 2), tl.cos(pitch))
+        R_y = [
+            [tl.cos(pitch), 0, tl.sin(pitch)],
+            [0, 1, 0],
+            [-tl.sin(pitch), 0, tl.cos(pitch)]
+        ]
+        R_y = T2.new_from_heterogeneous_array(R_y)
 
-        R_z = tl.zeros((3, 3), device=xyz.array.device, dtype=xyz.array.dtype)
-        R_z = T2.set_and_return(R_z, (2, 2), 1.0)
-        R_z = T2.set_and_return(R_z, (0, 0), tl.cos(yaw))
-        R_z = T2.set_and_return(R_z, (0, 1), -tl.sin(yaw))
-        R_z = T2.set_and_return(R_z, (1, 0), tl.sin(yaw))
-        R_z = T2.set_and_return(R_z, (1, 1), tl.cos(yaw))
+        R_z = [
+            [tl.cos(yaw), -tl.sin(yaw), 0],
+            [tl.sin(yaw), tl.cos(yaw), 0],
+            [0, 0, 1]
+        ]
+        R_z = T2.new_from_heterogeneous_array(R_z)
 
         rotation_matrix = R_z @ R_y @ R_x
 
@@ -73,11 +73,11 @@ class Rotation3(M3):
 
         axis = axis.normalize()
         x, y, z = axis.array
-        cos_theta = tl.cos(tl.tensor(angle, device=axis.array.device, dtype=axis.array.dtype))
-        sin_theta = tl.sin(tl.tensor(angle, device=axis.array.device, dtype=axis.array.dtype))
+        cos_theta = tl.cos(tl.tensor(angle, device=getattr(axis.array, "device", None), dtype=axis.array.dtype))
+        sin_theta = tl.sin(tl.tensor(angle, device=getattr(axis.array, "device", None), dtype=axis.array.dtype))
         one_minus_cos = 1.0 - cos_theta
 
-        rotation_matrix = tl.zeros((3, 3), device=axis.array.device, dtype=axis.array.dtype)
+        rotation_matrix = tl.zeros((3, 3), device=getattr(axis.array, "device", None), dtype=axis.array.dtype)
         rotation_matrix = T2.set_and_return(rotation_matrix, (0, 0), cos_theta + x * x * one_minus_cos)
         rotation_matrix = T2.set_and_return(rotation_matrix, (0, 1), x * y * one_minus_cos - z * sin_theta)
         rotation_matrix = T2.set_and_return(rotation_matrix, (0, 2), x * z * one_minus_cos + y * sin_theta)
@@ -128,10 +128,7 @@ class Rotation3(M3):
             roll = T2.arctan2(-m[1][2], m[1][1])
             yaw = 0
 
-        out = V3([0., 0., 0.])
-        out[0] = roll
-        out[1] = pitch
-        out[2] = yaw
+        out = V3(T2.new_from_heterogeneous_array([roll, pitch, yaw]))
         return out
 
     def inverse(self) -> 'Rotation3':

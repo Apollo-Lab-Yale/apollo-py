@@ -46,7 +46,7 @@ class Quaternion:
         x = self.array[1]
         y = self.array[2]
         z = self.array[3]
-        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=self.array.array.device, dtype=self.array.array.dtype))
+        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None), dtype=self.array.array.dtype))
         out[0] = w
         out[1] = -x
         out[2] = -y
@@ -65,7 +65,7 @@ class Quaternion:
         w1, x1, y1, z1 = self.array[0], self.array[1], self.array[2], self.array[3]
         w2, x2, y2, z2 = other.array[0], other.array[1], other.array[2], other.array[3]
 
-        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=self.array.array.device, dtype=self.array.array.dtype))
+        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None), dtype=self.array.array.dtype))
         out[0] = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
         out[1] = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
         out[2] = w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2
@@ -109,7 +109,7 @@ class UnitQuaternion(Quaternion):
         y = cr * sp * cy + sr * cp * sy
         z = cr * cp * sy - sr * sp * cy
 
-        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=xyz.array.device, dtype=xyz.array.dtype))
+        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=getattr(xyz.array, "device", None), dtype=xyz.array.dtype))
         out[0] = w
         out[1] = x
         out[2] = y
@@ -127,14 +127,14 @@ class UnitQuaternion(Quaternion):
     def from_scaled_axis(cls, scaled_axis: V3) -> 'UnitQuaternion':
         norm = scaled_axis.norm()
         if norm < 1e-8:
-            return cls(tl.tensor([1., 0., 0., 0.], device=scaled_axis.array.device, dtype=scaled_axis.array.dtype))
+            return cls(tl.tensor([1., 0., 0., 0.], device=getattr(scaled_axis.array, "device", None), dtype=scaled_axis.array.dtype))
 
         half_angle = norm / 2.0
         sin_half_angle = tl.sin(half_angle)
         cos_half_angle = tl.cos(half_angle)
 
         a = scaled_axis / norm
-        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=scaled_axis.array.device, dtype=scaled_axis.array.dtype))
+        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=getattr(scaled_axis.array, "device", None), dtype=scaled_axis.array.dtype))
         out[0] = cos_half_angle
         out[1] = sin_half_angle * a[0]
         out[2] = sin_half_angle * a[1]
@@ -149,14 +149,14 @@ class UnitQuaternion(Quaternion):
         return self.conjugate()
 
     def map_point(self, v: V3) -> 'V3':
-        qv = Quaternion(tl.tensor([0., 0., 0., 0.], device=v.array.device, dtype=v.array.dtype))
+        qv = Quaternion(tl.tensor([0., 0., 0., 0.], device=getattr(v.array, "device", None), dtype=v.array.dtype))
         qv[1] = v.array[0]
         qv[2] = v.array[1]
         qv[3] = v.array[2]
 
         res = self @ qv @ self.conjugate()
 
-        out = V3(tl.tensor([0., 0., 0.], device=v.array.device, dtype=v.array.dtype))
+        out = V3(tl.tensor([0., 0., 0.], device=getattr(v.array, "device", None), dtype=v.array.dtype))
         out[0] = res[1]
         out[1] = res[2]
         out[2] = res[3]
@@ -165,7 +165,7 @@ class UnitQuaternion(Quaternion):
     def __mul__(self, other: Union['UnitQuaternion', 'Quaternion']) -> Union['UnitQuaternion', 'Quaternion']:
         tmp = super().__mul__(other)
         if isinstance(other, UnitQuaternion):
-            qq = UnitQuaternion(tl.tensor([1., 0., 0., 0.], device=self.array.array.device, dtype=self.array.array.dtype))
+            qq = UnitQuaternion(tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None), dtype=self.array.array.dtype))
             qq.array = tmp.array
             return qq
         else:

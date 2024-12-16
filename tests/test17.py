@@ -9,14 +9,14 @@ from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.isometries 
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.quaternions import Quaternion, UnitQuaternion
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.rotation_matrices import Rotation3
 
-tl.set_backend('jax')
+tl.set_backend('numpy')
 
 v1 = V3([1., 2., 3.], Device.MPS, DType.Float32)
 v2 = V3([1., 2., 3.], Device.MPS, DType.Float32)
 v3 = V3([1., 2., 3.], Device.MPS, DType.Float32)
 
-v1.array.requires_grad = True
-v2.array.requires_grad = True
+# v1.array.requires_grad = True
+# v2.array.requires_grad = True
 
 i = IsometryMatrix3.from_scaled_axis(v1, v2)
 print(i)
