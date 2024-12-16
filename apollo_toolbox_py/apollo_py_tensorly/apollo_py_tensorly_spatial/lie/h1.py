@@ -3,6 +3,8 @@ from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors impo
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.quaternions import UnitQuaternion, Quaternion
 import tensorly as tl
 
+__all__ = ['LieGroupH1', 'LieAlgH1']
+
 
 class LieGroupH1(UnitQuaternion):
     @classmethod
@@ -13,7 +15,7 @@ class LieGroupH1(UnitQuaternion):
         w, x, y, z = self[0], self[1], self[2], self[3]
         acos = tl.acos(T2.min(w, tl.tensor(1.0, device=getattr(w, "device", None), dtype=w.dtype)))
         if acos == 0.0:
-            return LieAlgH1(T2.new_from_heterogeneous_array([0.0*w, 0.0*x, 0.0*y, 0.0*z]))
+            return LieAlgH1(T2.new_from_heterogeneous_array([0.0 * w, 0.0 * x, 0.0 * y, 0.0 * z]))
         else:
             ss = acos / tl.sin(acos)
             return LieAlgH1(T2.new_from_heterogeneous_array([0, ss * x, ss * y, ss * z]))

@@ -1,7 +1,8 @@
 import numpy as np
 
-from apollo_toolbox_py.apollo_py.apollo_py_linalg.vectors import V3
+
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.matrices import M3
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors import V3
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.rotation_matrices import Rotation3
 import tensorly as tl
 from tensorly import backend as T
