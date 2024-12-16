@@ -148,6 +148,20 @@ class UnitQuaternion(Quaternion):
     def inverse(self) -> 'UnitQuaternion':
         return self.conjugate()
 
+    def map_point(self, v: V3) -> 'V3':
+        qv = Quaternion(tl.tensor([0., 0., 0., 0.], device=v.array.device, dtype=v.array.dtype))
+        qv[1] = v.array[0]
+        qv[2] = v.array[1]
+        qv[3] = v.array[2]
+
+        res = self @ qv @ self.conjugate()
+
+        out = V3(tl.tensor([0., 0., 0.], device=v.array.device, dtype=v.array.dtype))
+        out[0] = res[1]
+        out[1] = res[2]
+        out[2] = res[3]
+        return out
+
     def __mul__(self, other: Union['UnitQuaternion', 'Quaternion']) -> Union['UnitQuaternion', 'Quaternion']:
         tmp = super().__mul__(other)
         if isinstance(other, UnitQuaternion):
