@@ -148,6 +148,16 @@ class UnitQuaternion(Quaternion):
     def inverse(self) -> 'UnitQuaternion':
         return self.conjugate()
 
+    def to_rotation_matrix(self) -> 'Rotation3':
+        from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.rotation_matrices import Rotation3
+        w, x, y, z = self[0], self[1], self[2], self[3]
+        matrix = [
+            [1 - 2 * (y ** 2 + z ** 2), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+            [2 * (x * y + z * w), 1 - 2 * (x ** 2 + z ** 2), 2 * (y * z - x * w)],
+            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x ** 2 + y ** 2)]
+        ]
+        return Rotation3(T2.new_from_heterogeneous_array(matrix))
+
     def map_point(self, v: V3) -> 'V3':
         qv = Quaternion(tl.tensor([0., 0., 0., 0.], device=getattr(v.array, "device", None), dtype=v.array.dtype))
         qv[1] = v.array[0]
@@ -161,6 +171,10 @@ class UnitQuaternion(Quaternion):
         out[1] = res[2]
         out[2] = res[3]
         return out
+
+    def to_lie_group_h1(self) -> 'LieGroupH1':
+        from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.h1 import LieGroupH1
+        return LieGroupH1(self.array)
 
     def __mul__(self, other: Union['UnitQuaternion', 'Quaternion']) -> Union['UnitQuaternion', 'Quaternion']:
         tmp = super().__mul__(other)

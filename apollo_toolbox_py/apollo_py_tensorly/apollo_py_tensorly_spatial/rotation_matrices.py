@@ -6,6 +6,8 @@ from apollo_toolbox_py.apollo_py.extra_tensorly_backend import ExtraBackend as T
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.matrices import M3
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors import V3
 
+__all__ = ['Rotation3']
+
 
 class Rotation3(M3):
     def __init__(self, array: Union[List[List[float]], np.ndarray], device: Device = Device.CPU,
@@ -16,7 +18,7 @@ class Rotation3(M3):
 
     @classmethod
     def new_unchecked(cls, array: Union[List[List[float]], np.ndarray], device: Device = Device.CPU,
-                 dtype: DType = DType.Float64) -> 'Rotation3':
+                      dtype: DType = DType.Float64) -> 'Rotation3':
         out = cls.__new__(cls)
         m = M3(array, device, dtype)
         out.array = m.array
@@ -24,7 +26,7 @@ class Rotation3(M3):
 
     @classmethod
     def new_normalize(cls, array: Union[List[List[float]], np.ndarray], device: Device = Device.CPU,
-                 dtype: DType = DType.Float64) -> 'Rotation3':
+                      dtype: DType = DType.Float64) -> 'Rotation3':
         m = M3(array, device, dtype)
 
         u, _, vh = m.svd(True)
@@ -32,7 +34,7 @@ class Rotation3(M3):
 
         if T2.det(array) < 0:
             # u[:, -1] *= -1
-            u = u.set_and_return((slice(None), 0), -1.0*u[:, 0])
+            u = u.set_and_return((slice(None), 0), -1.0 * u[:, 0])
             array = u.array @ vh.array
 
         return cls(array)
@@ -134,8 +136,44 @@ class Rotation3(M3):
     def inverse(self) -> 'Rotation3':
         return self.new_unchecked(self.array.T)
 
+    def to_unit_quaternion(self) -> 'UnitQuaternion':
+        from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.quaternions import UnitQuaternion
+
+        m = self.array
+        trace = tl.trace(m)
+        if trace > 0:
+            s = 0.5 / tl.sqrt(trace + 1.0)
+            w = 0.25 / s
+            x = (m[2, 1] - m[1, 2]) * s
+            y = (m[0, 2] - m[2, 0]) * s
+            z = (m[1, 0] - m[0, 1]) * s
+        elif (m[0, 0] > m[1, 1]) and (m[0, 0] > m[2, 2]):
+            s = 2.0 * tl.sqrt(1.0 + m[0, 0] - m[1, 1] - m[2, 2])
+            w = (m[2, 1] - m[1, 2]) / s
+            x = 0.25 * s
+            y = (m[0, 1] + m[1, 0]) / s
+            z = (m[0, 2] + m[2, 0]) / s
+        elif m[1, 1] > m[2, 2]:
+            s = 2.0 * tl.sqrt(1.0 + m[1, 1] - m[0, 0] - m[2, 2])
+            w = (m[0, 2] - m[2, 0]) / s
+            x = (m[0, 1] + m[1, 0]) / s
+            y = 0.25 * s
+            z = (m[1, 2] + m[2, 1]) / s
+        else:
+            s = 2.0 * tl.sqrt(1.0 + m[2, 2] - m[0, 0] - m[1, 1])
+            w = (m[1, 0] - m[0, 1]) / s
+            x = (m[0, 2] + m[2, 0]) / s
+            y = (m[1, 2] + m[2, 1]) / s
+            z = 0.25 * s
+
+        return UnitQuaternion(T2.new_from_heterogeneous_array([w, x, y, z]))
+
     def map_point(self, v: V3) -> 'V3':
-        return V3(self.array@v.array)
+        return V3(self.array @ v.array)
+
+    def to_lie_group_so3(self) -> 'LieGroupSO3':
+        from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.so3 import LieGroupSO3
+        return LieGroupSO3(self.array)
 
     def __repr__(self) -> str:
         return f"Rotation3(\n{self.array}\n)"

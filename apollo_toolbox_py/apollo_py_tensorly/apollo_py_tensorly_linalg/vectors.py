@@ -88,6 +88,14 @@ class V3(V):
         if self.array.shape != (3,):
             raise ValueError("V3 must be a 3-vector.")
 
+    def to_lie_alg_so3(self):
+        from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.so3 import LieAlgSO3
+        return LieAlgSO3.from_euclidean_space_element(self.array)
+
+    def to_lie_alg_h1(self):
+        from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.h1 import LieAlgH1
+        return LieAlgH1.from_euclidean_space_element(self.array)
+
     def cross(self, other: 'V3') -> 'V3':
         if not isinstance(other, V3):
             raise TypeError("Cross product requires another V3 vector.")

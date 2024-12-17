@@ -1,3 +1,5 @@
+'''
+
 from typing import TypeVar, Optional, Union, Tuple
 import numpy as np
 import scipy
@@ -1211,3 +1213,4 @@ class SVDResult:
         self.U = U
         self.singular_vals = singular_vals
         self.VT = VT
+'''
