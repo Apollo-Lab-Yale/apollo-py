@@ -20,6 +20,9 @@ from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.robot_runtime_mo
 
 __all__ = ['ResourcesRootDirectory', 'ResourcesSubDirectory']
 
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_robotics.robot_runtime_modules.urdf_tensorly_module import \
+    ApolloURDFTensorlyModule
+
 
 class ResourcesRootDirectory:
     def __init__(self, directory: PathBuf):
@@ -53,6 +56,10 @@ class ResourcesSubDirectory:
     def to_urdf_numpy_module(self) -> 'ApolloURDFNumpyModule':
         urdf_module = self.to_urdf_module()
         return ApolloURDFNumpyModule.from_urdf_module(urdf_module)
+
+    def to_urdf_tensorly_module(self) -> 'ApolloURDFTensorlyModule':
+        urdf_module = self.to_urdf_module()
+        return ApolloURDFTensorlyModule.from_urdf_module(urdf_module)
 
     def to_chain_module(self) -> 'ApolloChainModule':
         dd = self.directory.append('chain_module/module.json')

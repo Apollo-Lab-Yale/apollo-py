@@ -1,6 +1,6 @@
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.resources_directories import ResourcesRootDirectory
 from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType
-from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_robotics.urdf_tensorly_module import \
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_robotics.robot_runtime_modules.urdf_tensorly_module import \
     ApolloURDFTensorlyModule
 import tensorly as tl
 

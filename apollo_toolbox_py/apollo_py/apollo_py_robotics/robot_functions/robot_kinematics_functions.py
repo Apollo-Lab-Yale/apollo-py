@@ -5,19 +5,24 @@ from typing import Union, TypeVar, Type, List
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.chain_module import ApolloChainModule
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.dof_module import ApolloDOFModule
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3 as V3Numpy, V6 as V6Numpy, V as VNumpy
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors import V3 as V3Tensorly, V6 as V6Tensorly, V as VTensorly
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.robot_runtime_modules.urdf_numpy_module import \
     ApolloURDFNumpyModule
-from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import LieGroupISE3
-from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import LieGroupISE3 as LieGroupISE3Numpy
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q as LieGroupISE3qNumpy
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.se3_implicit import LieGroupISE3 as LieGroupISE3Tensorly
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.se3_implicit_quaternion import LieGroupISE3q as LieGroupISE3qTensorly
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_robotics.robot_runtime_modules.urdf_tensorly_module import \
+    ApolloURDFTensorlyModule
 
-U = TypeVar('U', bound=Union[ApolloURDFNumpyModule])
-LT = TypeVar('LT', bound=Union[Type[LieGroupISE3q], Type[LieGroupISE3]])
-L = TypeVar('L', bound=Union[LieGroupISE3q, LieGroupISE3])
-V3 = TypeVar('V3', bound=Union[V3Numpy])
-V3T = TypeVar('V3T', bound=Union[Type[V3Numpy]])
-V6 = TypeVar('V6', bound=Union[V6Numpy])
-V = TypeVar('V', bound=Union[VNumpy])
-VT = TypeVar('VT', bound=Union[Type[VNumpy]])
+U = TypeVar('U', bound=Union[ApolloURDFNumpyModule, ApolloURDFTensorlyModule])
+LT = TypeVar('LT', bound=Union[Type[LieGroupISE3qNumpy], Type[LieGroupISE3Numpy], Type[LieGroupISE3qTensorly], Type[LieGroupISE3Tensorly]])
+L = TypeVar('L', bound=Union[LieGroupISE3qNumpy, LieGroupISE3Numpy, LieGroupISE3qTensorly, LieGroupISE3Tensorly])
+V3 = TypeVar('V3', bound=Union[V3Numpy, V3Tensorly])
+V3T = TypeVar('V3T', bound=Union[Type[V3Numpy], Type[V3Tensorly]])
+V6 = TypeVar('V6', bound=Union[V6Numpy, V6Tensorly])
+V = TypeVar('V', bound=Union[VNumpy, VTensorly])
+VT = TypeVar('VT', bound=Union[Type[VNumpy], Type[VTensorly]])
 
 class RobotKinematicFunctions:
     @staticmethod
@@ -77,7 +82,7 @@ class RobotKinematicFunctions:
                 value = t_variable_vee.norm()
                 tmp = vector3_type([t_variable_vee[0], t_variable_vee[1], t_variable_vee[2]])
                 d = axis.dot(tmp)
-                if issubclass(lie_group_type, LieGroupISE3q):
+                if issubclass(lie_group_type, LieGroupISE3qTensorly) or issubclass(lie_group_type, LieGroupISE3qNumpy):
                     value *= 2.0
                 if d < 0.0:
                     value = -value
