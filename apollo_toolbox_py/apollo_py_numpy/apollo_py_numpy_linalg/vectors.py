@@ -3,9 +3,11 @@ import numpy as np
 
 __all__ = ['V', 'V3', 'V6']
 
+from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType
+
 
 class V:
-    def __init__(self, array: Union[List[float], np.ndarray]):
+    def __init__(self, array: Union[List[float], np.ndarray], device: Device = Device.CPU, dtype: DType = DType.Float64):
         self.array = np.asarray(array, dtype=np.float64)
 
     def __getitem__(self, item):
@@ -69,7 +71,7 @@ class V:
 
 
 class V3(V):
-    def __init__(self, array: Union[List[float], np.ndarray]):
+    def __init__(self, array: Union[List[float], np.ndarray], device: Device = Device.CPU, dtype: DType = DType.Float64):
         super().__init__(array)
         if self.array.shape != (3,):
             raise ValueError("V3 must be a 3-vector.")
@@ -95,7 +97,7 @@ class V3(V):
 
 
 class V6(V):
-    def __init__(self, array: Union[List[float], np.ndarray]):
+    def __init__(self, array: Union[List[float], np.ndarray], device: Device = Device.CPU, dtype: DType = DType.Float64):
         super().__init__(array)
         if self.array.shape != (6,):
             raise ValueError("V6 must be a 6-vector.")

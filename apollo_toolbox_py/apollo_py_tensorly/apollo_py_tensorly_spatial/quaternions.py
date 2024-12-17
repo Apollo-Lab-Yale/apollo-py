@@ -126,19 +126,26 @@ class UnitQuaternion(Quaternion):
     @classmethod
     def from_scaled_axis(cls, scaled_axis: V3) -> 'UnitQuaternion':
         norm = scaled_axis.norm()
-        if norm < 1e-8:
-            return cls(tl.tensor([1., 0., 0., 0.], device=getattr(scaled_axis.array, "device", None), dtype=scaled_axis.array.dtype))
 
         half_angle = norm / 2.0
         sin_half_angle = tl.sin(half_angle)
         cos_half_angle = tl.cos(half_angle)
 
-        a = scaled_axis / norm
-        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=getattr(scaled_axis.array, "device", None), dtype=scaled_axis.array.dtype))
-        out[0] = cos_half_angle
-        out[1] = sin_half_angle * a[0]
-        out[2] = sin_half_angle * a[1]
-        out[3] = sin_half_angle * a[2]
+        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=getattr(scaled_axis.array, "device", None),
+                                   dtype=scaled_axis.array.dtype))
+
+        if norm < 1e-8:
+            out[0] = cos_half_angle
+            out[1] = sin_half_angle * 0.0
+            out[2] = sin_half_angle * 0.0
+            out[3] = sin_half_angle * 0.0
+        else:
+            a = scaled_axis / norm
+
+            out[0] = cos_half_angle
+            out[1] = sin_half_angle * a[0]
+            out[2] = sin_half_angle * a[1]
+            out[3] = sin_half_angle * a[2]
 
         return out.to_unit_quaternion()
 

@@ -13,9 +13,11 @@ class V:
                  dtype: DType = DType.Float64):
         if tl.is_tensor(array):
             self.array = array
-            return
+        elif T2.check_if_an_element_is_tensor(array):
+            self.array = T2.new_from_heterogeneous_array(array)
+        else:
+            self.array = T2.new(array, device, dtype)
 
-        self.array = T2.new(array, device, dtype)
         assert len(self.array.shape) == 1
 
     def __getitem__(self, item):

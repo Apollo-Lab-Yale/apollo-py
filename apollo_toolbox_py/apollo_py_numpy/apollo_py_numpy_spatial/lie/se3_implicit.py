@@ -1,5 +1,6 @@
 import numpy as np
 
+from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.isometries import IsometryMatrix3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.so3 import LieGroupSO3, LieAlgSO3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.matrices import M3
@@ -21,7 +22,7 @@ class LieGroupISE3(IsometryMatrix3):
         return cls(rotation, translation)
 
     @classmethod
-    def identity(cls) -> 'LieGroupISE3':
+    def identity(cls, device: Device = Device.CPU, dtype: DType = DType.Float64) -> 'LieGroupISE3':
         return LieGroupISE3(Rotation3.new_unchecked(np.identity(3)), V3([0, 0, 0]))
 
     def group_operator(self, other: 'LieGroupISE3') -> 'LieGroupISE3':

@@ -1,3 +1,4 @@
+from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.isometries import Isometry3
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.h1 import LieGroupH1, LieAlgH1
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.so3 import LieAlgSO3
@@ -28,7 +29,7 @@ class LieGroupISE3q(Isometry3):
         return LieGroupISE3q.from_isometry3(Isometry3(UnitQuaternion.from_euler_angles(euler_angles), translation))
 
     @classmethod
-    def identity(cls) -> 'LieGroupISE3q':
+    def identity(cls, device: Device = Device.CPU, dtype: DType = DType.Float64) -> 'LieGroupISE3q':
         return LieGroupISE3q(UnitQuaternion.new_unchecked([1, 0, 0, 0]), V3([0, 0, 0]))
 
     def group_operator(self, other: 'LieGroupISE3q') -> 'LieGroupISE3q':

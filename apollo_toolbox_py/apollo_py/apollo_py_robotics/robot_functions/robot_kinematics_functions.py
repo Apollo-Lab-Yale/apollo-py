@@ -4,19 +4,25 @@ from typing import Union, TypeVar, Type, List
 
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.chain_module import ApolloChainModule
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.dof_module import ApolloDOFModule
+from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_linalg.vectors import V3 as V3Numpy, V6 as V6Numpy, V as VNumpy
-from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors import V3 as V3Tensorly, V6 as V6Tensorly, V as VTensorly
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors import V3 as V3Tensorly, V6 as V6Tensorly, \
+    V as VTensorly
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.robot_runtime_modules.urdf_numpy_module import \
     ApolloURDFNumpyModule
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit import LieGroupISE3 as LieGroupISE3Numpy
-from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import LieGroupISE3q as LieGroupISE3qNumpy
-from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.se3_implicit import LieGroupISE3 as LieGroupISE3Tensorly
-from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.se3_implicit_quaternion import LieGroupISE3q as LieGroupISE3qTensorly
+from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.se3_implicit_quaternion import \
+    LieGroupISE3q as LieGroupISE3qNumpy
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.se3_implicit import \
+    LieGroupISE3 as LieGroupISE3Tensorly
+from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.se3_implicit_quaternion import \
+    LieGroupISE3q as LieGroupISE3qTensorly
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_robotics.robot_runtime_modules.urdf_tensorly_module import \
     ApolloURDFTensorlyModule
 
 U = TypeVar('U', bound=Union[ApolloURDFNumpyModule, ApolloURDFTensorlyModule])
-LT = TypeVar('LT', bound=Union[Type[LieGroupISE3qNumpy], Type[LieGroupISE3Numpy], Type[LieGroupISE3qTensorly], Type[LieGroupISE3Tensorly]])
+LT = TypeVar('LT', bound=Union[
+    Type[LieGroupISE3qNumpy], Type[LieGroupISE3Numpy], Type[LieGroupISE3qTensorly], Type[LieGroupISE3Tensorly]])
 L = TypeVar('L', bound=Union[LieGroupISE3qNumpy, LieGroupISE3Numpy, LieGroupISE3qTensorly, LieGroupISE3Tensorly])
 V3 = TypeVar('V3', bound=Union[V3Numpy, V3Tensorly])
 V3T = TypeVar('V3T', bound=Union[Type[V3Numpy], Type[V3Tensorly]])
@@ -24,17 +30,18 @@ V6 = TypeVar('V6', bound=Union[V6Numpy, V6Tensorly])
 V = TypeVar('V', bound=Union[VNumpy, VTensorly])
 VT = TypeVar('VT', bound=Union[Type[VNumpy], Type[VTensorly]])
 
+
 class RobotKinematicFunctions:
     @staticmethod
     def fk(state: V, urdf_module: U, chain_module: ApolloChainModule, dof_module: ApolloDOFModule,
-           lie_group_type: LT, vector3_type: V3, vector6_type: V6) -> List[L]:
+           lie_group_type: LT, vector3_type: V3, vector6_type: V6, device: Device = Device.CPU, dtype: DType = DType.Float64) -> List[L]:
         links = urdf_module.links
         joints = urdf_module.joints
         kinematic_hierarchy = chain_module.kinematic_hierarchy
         joint_idx_to_dofs_mapping = dof_module.joint_idx_to_dof_idxs_mapping
 
         num_links = len(links)
-        out = [lie_group_type.identity() for _ in range(num_links)]
+        out = [lie_group_type.identity(device, dtype) for _ in range(num_links)]
 
         for i, layer in enumerate(kinematic_hierarchy):
             if i == 0:
@@ -53,7 +60,9 @@ class RobotKinematicFunctions:
                 joint_type = parent_joint.joint_type
                 variable_transform = RobotKinematicFunctions.get_joint_variable_transform(joint_type, joint_axis,
                                                                                           joint_dofs, lie_group_type,
-                                                                                          vector3_type, vector6_type)
+                                                                                          vector3_type, vector6_type,
+                                                                                          device, dtype)
+
                 out[link_idx] = out[parent_link_idx].group_operator(constant_transform).group_operator \
                     (variable_transform)
 
@@ -75,7 +84,8 @@ class RobotKinematicFunctions:
             dof_idxs = dof_module.joint_idx_to_dof_idxs_mapping[joint_idx]
             axis = joint.axis.xyz
 
-            t_variable = constant_transform.inverse().group_operator(link_frames[parent_link_idx].inverse()).group_operator(link_frames[child_link_idx])
+            t_variable = constant_transform.inverse().group_operator(
+                link_frames[parent_link_idx].inverse()).group_operator(link_frames[child_link_idx])
             t_variable_vee = t_variable.ln().vee()
 
             if joint_type == 'Revolute' or joint_type == 'Continuous':
@@ -109,22 +119,22 @@ class RobotKinematicFunctions:
 
     @staticmethod
     def get_joint_variable_transform(joint_type: str, joint_axis, joint_dofs, lie_group_type: LT, vector3_type: V3,
-                                     vector6_type: V6):
+                                     vector6_type: V6, device: Device = Device.CPU, dtype: DType = DType.Float64):
         if joint_type == 'Revolute':
             assert len(joint_dofs) == 1
             sa = joint_dofs[0] * joint_axis
-            return lie_group_type.from_scaled_axis(sa, vector3_type([0, 0, 0]))
+            return lie_group_type.from_scaled_axis(sa, vector3_type([0, 0, 0], device, dtype))
         elif joint_type == 'Continuous':
             assert len(joint_dofs) == 1
             sa = joint_dofs[0] * joint_axis
-            return lie_group_type.from_scaled_axis(sa, vector3_type([0, 0, 0]))
+            return lie_group_type.from_scaled_axis(sa, vector3_type([0, 0, 0], device, dtype))
         elif joint_type == 'Prismatic':
             assert len(joint_dofs) == 1
             sa = joint_dofs[0] * joint_axis
-            return lie_group_type.from_scaled_axis(vector3_type([0, 0, 0]), sa)
+            return lie_group_type.from_scaled_axis(vector3_type([0, 0, 0], device, dtype), sa)
         elif joint_type == 'Fixed':
             assert len(joint_dofs) == 0
-            return lie_group_type.identity()
+            return lie_group_type.identity(device, dtype)
         elif joint_type == 'Floating':
             assert len(joint_dofs) == 6
             v6 = vector6_type(joint_dofs)
@@ -132,10 +142,10 @@ class RobotKinematicFunctions:
         elif joint_type == 'Planar':
             assert len(joint_dofs) == 2
             t = vector3_type([joint_dofs[0], joint_dofs[1], 0.0])
-            return lie_group_type.from_scaled_axis(vector3_type([0, 0, 0]), t)
+            return lie_group_type.from_scaled_axis(vector3_type([0, 0, 0], device, dtype), t)
         elif joint_type == 'Spherical':
             assert len(joint_dofs) == 3
             v = vector3_type(joint_dofs)
-            return lie_group_type.from_scaled_axis(v, vector3_type([0, 0, 0]))
+            return lie_group_type.from_scaled_axis(v, vector3_type([0, 0, 0], device, dtype))
         else:
             raise ValueError(f"not valid joint type: {joint_type}")

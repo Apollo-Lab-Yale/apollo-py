@@ -73,6 +73,15 @@ class ExtraBackend:
             return tl.tensor(array, dtype=d, device=de)
 
     @staticmethod
+    def check_if_an_element_is_tensor(array):
+        flattened = flatten_nested_list(array)
+
+        for e in flattened:
+            if tl.is_tensor(e):
+                return True
+        return False
+
+    @staticmethod
     def new_from_heterogeneous_array(array):
         shape = get_shape_of_nested_list(array)
         flattened = flatten_nested_list(array)
