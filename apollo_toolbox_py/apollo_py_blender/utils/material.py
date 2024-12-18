@@ -36,6 +36,45 @@ class BlenderSimpleMaterial:
 
         self.input_node.inputs[0].default_value = default_color
 
+    @classmethod
+    def from_already_existing_material(cls, material: bpy.types.Material, material_type: str = 'Principled BSDF',
+                                       default_color: Tuple[float, float, float, float] = (0.2, 0.2, 0.2, 1)):
+        """
+        Create a BlenderSimpleMaterial from an existing Blender material.
+
+        Parameters:
+        - material: The existing Blender material.
+        - material_type: The type of the material ('Principled BSDF' or 'Emission').
+        - default_color: The default color of the material.
+        """
+        if not material.use_nodes:
+            raise ValueError("The existing material must use nodes.")
+
+        instance = cls(name=material.name, material_type=material_type, default_color=default_color)
+        instance.material = material
+        instance.material_type = material_type
+
+        material_output_node = material.node_tree.nodes.get('Material Output')
+        if not material_output_node:
+            raise ValueError("The existing material must have a 'Material Output' node.")
+
+        input_node = None
+        for node in material.node_tree.nodes:
+            if (material_type == 'Principled BSDF' and node.type == 'BSDF_PRINCIPLED') or \
+               (material_type == 'Emission' and node.type == 'EMISSION'):
+                input_node = node
+                break
+
+        if not input_node:
+            raise ValueError(f"No '{material_type}' node found in the existing material.")
+
+        instance.input_node = input_node
+        instance.default_color = default_color
+
+        input_node.inputs[0].default_value = default_color
+
+        return instance
+
     def apply_material_to_object(self, blender_object: bpy.types.Object):
         """
         Apply this material to a Blender object.

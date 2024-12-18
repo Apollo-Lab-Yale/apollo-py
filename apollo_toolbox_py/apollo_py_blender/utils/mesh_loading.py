@@ -9,6 +9,21 @@ __all__ = ['BlenderMeshLoader']
 
 class BlenderMeshLoader:
     @staticmethod
+    def import_mesh_file(object_name, filepath, collection_name=None):
+        split = filepath.split('.')
+        if len(split) == 0:
+            return
+        ext = split[-1]
+        if ext == 'stl' or ext == 'STL':
+            return BlenderMeshLoader.import_stl(object_name, filepath, collection_name)
+        elif ext == 'obj' or ext == 'OBJ':
+            return BlenderMeshLoader.import_obj(object_name, filepath, collection_name)
+        elif ext == 'dae' or ext == 'DAE':
+            return BlenderMeshLoader.import_dae(object_name, filepath, collection_name)
+        elif ext == 'glb' or ext == 'gltf' or ext == 'GLB' or ext == 'GLTF':
+            return BlenderMeshLoader.import_glb(object_name, filepath, collection_name)
+
+    @staticmethod
     def import_stl(object_name: str, filepath: str, collection_name: Optional[str] = None) -> bpy.types.Object:
         bpy.ops.wm.stl_import(filepath=filepath)
         rename_object(ao(), object_name)
@@ -71,18 +86,3 @@ class BlenderMeshLoader:
             apply_rotation(empty_object)
 
         return empty_object
-
-    @staticmethod
-    def import_mesh_file(object_name, filepath, collection_name=None):
-        split = filepath.split('.')
-        if len(split) == 0:
-            return
-        ext = split[-1]
-        if ext == 'stl' or ext == 'STL':
-            return BlenderMeshLoader.import_stl(object_name, filepath, collection_name)
-        elif ext == 'obj' or ext == 'OBJ':
-            return BlenderMeshLoader.import_obj(object_name, filepath, collection_name)
-        elif ext == 'dae' or ext == 'DAE':
-            return BlenderMeshLoader.import_dae(object_name, filepath, collection_name)
-        elif ext == 'glb' or ext == 'gltf' or ext == 'GLB' or ext == 'GLTF':
-            return BlenderMeshLoader.import_glb(object_name, filepath, collection_name)
