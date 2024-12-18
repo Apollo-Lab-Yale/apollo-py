@@ -25,4 +25,4 @@ class ChainTensorly(Chain):
     def reverse_of_fk(self, link_frames: List[Union[LieGroupISE3q, LieGroupISE3]],
                       lie_group_type: Union[Type[LieGroupISE3q], Type[LieGroupISE3]] = LieGroupISE3q):
         return RobotKinematicFunctions.reverse_of_fk(link_frames, self.urdf_module, self.chain_module, self.dof_module,
-                                                     lie_group_type, V, V3)
+                                                     lie_group_type, V, V3, self.device, self.dtype)

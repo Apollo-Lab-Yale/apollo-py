@@ -13,7 +13,7 @@ dtype = DType.Float32
 r = ResourcesRootDirectory.new_from_default_apollo_robots_dir()
 s = r.get_subdirectory('ur5')
 c = s.to_chain_tensorly(device, dtype)
-state = V(6*[0.0], device, dtype)
+state = V(6*[0.2], device, dtype)
 state.array.requires_grad = True
 res = c.fk(state)
-print(res)
+print(c.reverse_of_fk(res))

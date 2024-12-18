@@ -1,12 +1,22 @@
-import jax
 import scipy
 import tensorly as tl
-import torch
 from tensorly import backend as T
 import numpy as np
-import jax.numpy as jnp
-import jax.scipy as jsp
 from enum import Enum
+
+try:
+    import jax
+    import jax.numpy as jnp
+    import jax.scipy as jsp
+except ImportError:
+    jax = None
+    jnp = None
+    jsp = None
+
+try:
+    import torch
+except ImportError:
+    torch = None
 
 __all__ = ['ExtraBackend', 'Device', 'DType']
 

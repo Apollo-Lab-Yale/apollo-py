@@ -71,8 +71,8 @@ class RobotKinematicFunctions:
     @staticmethod
     def reverse_of_fk(link_frames: List[L], urdf_module: U, chain_module: ApolloChainModule,
                       dof_module: ApolloDOFModule,
-                      lie_group_type: LT, vec_type: VT, vector3_type: V3) -> V:
-        out = vec_type(dof_module.num_dofs * [0.0])
+                      lie_group_type: LT, vec_type: VT, vector3_type: V3, device: Device = Device.CPU, dtype: DType = DType.Float64) -> V:
+        out = vec_type(dof_module.num_dofs * [0.0], device, dtype)
 
         for joint_in_chain in chain_module.joints_in_chain:
             joint_idx = joint_in_chain.joint_idx
