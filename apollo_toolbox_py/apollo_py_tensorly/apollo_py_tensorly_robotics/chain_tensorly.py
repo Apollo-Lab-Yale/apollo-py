@@ -8,6 +8,7 @@ from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_linalg.vectors import V, V3, V6
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.se3_implicit import LieGroupISE3
 from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_spatial.lie.se3_implicit_quaternion import LieGroupISE3q
+import tensorly as tl
 
 
 class ChainTensorly(Chain):
@@ -16,6 +17,12 @@ class ChainTensorly(Chain):
         self.device = device
         self.dtype = dtype
         self.urdf_module = s.to_urdf_tensorly_module(device, dtype)
+
+    def to_different_tensorly_backend(self, backend: str, device: Device = Device.CPU, dtype: DType = DType.Float64):
+        tl.set_backend(backend)
+        self.urdf_module = self.sub_directory.to_urdf_tensorly_module(device, dtype)
+        self.device = device
+        self.dtype = dtype
 
     def fk(self, state: V, lie_group_type: Union[Type[LieGroupISE3q], Type[LieGroupISE3]] = LieGroupISE3q) -> List[
         Union[LieGroupISE3q, LieGroupISE3]]:
