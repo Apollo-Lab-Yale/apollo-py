@@ -30,10 +30,10 @@ class FunctionTensorly(ABC):
 
 class TestFunction(FunctionTensorly):
     def call_raw(self, x: tl.tensor) -> List[tl.tensor]:
-        return [tl.sin(x[0]), tl.cos(x[0]), 0.0]
+        return [tl.sin(x[0])]
 
     def input_dim(self):
         return 1
 
     def output_dim(self):
-        return 3
+        return 1

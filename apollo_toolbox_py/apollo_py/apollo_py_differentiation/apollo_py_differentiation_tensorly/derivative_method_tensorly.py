@@ -38,4 +38,12 @@ class DerivativeMethodFD(DerivativeMethodTensorly):
         fx = f.call(x)
         dfdx = tl.zeros((f.output_dim(), f.input_dim()), device=getattr(x, 'device', None), dtype=x.dtype)
 
-        return (fx, dfdx)
+        for i in range(f.input_dim()):
+            delta_x = tl.zeros(f.input_dim(), device=getattr(x, 'device', None), dtype=x.dtype)
+            delta_x = T2.set_and_return(delta_x, i, self.epsilon)
+            x_delta_x = x + delta_x
+            fh = f.call(x_delta_x)
+            col = (fh - fx) / self.epsilon
+            dfdx = T2.set_and_return(dfdx, (slice(None), i), col)
+
+        return fx, dfdx
