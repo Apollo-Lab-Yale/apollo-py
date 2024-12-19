@@ -35,4 +35,7 @@ class DerivativeMethodFD(DerivativeMethodTensorly):
         return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
 
     def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
-        pass
+        fx = f.call(x)
+        dfdx = tl.zeros((f.output_dim(), f.input_dim()), device=getattr(x, 'device', None), dtype=x.dtype)
+
+        return (fx, dfdx)

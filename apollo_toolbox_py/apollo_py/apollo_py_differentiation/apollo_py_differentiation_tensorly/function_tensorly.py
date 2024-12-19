@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from numba import jit
+from numba.experimental import jitclass
+
 from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType, Backend, ExtraBackend as T2
 import tensorly as tl
 
