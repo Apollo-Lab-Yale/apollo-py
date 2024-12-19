@@ -18,7 +18,7 @@ try:
 except ImportError:
     torch = None
 
-__all__ = ['ExtraBackend', 'Device', 'DType']
+__all__ = ['ExtraBackend', 'Device', 'DType', 'Backend']
 
 
 class Device(Enum):
@@ -30,6 +30,20 @@ class Device(Enum):
 class DType(Enum):
     Float32 = 0
     Float64 = 1
+
+
+class Backend(Enum):
+    Numpy = 0
+    JAX = 1
+    PyTorch = 2
+
+    def to_string(self):
+        if self == Backend.Numpy:
+            return 'numpy'
+        elif self == Backend.JAX:
+            return 'jax'
+        elif self == Backend.PyTorch:
+            return 'pytorch'
 
 
 class ExtraBackend:

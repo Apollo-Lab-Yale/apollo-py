@@ -13,7 +13,7 @@ from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.m
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.mesh_modules.plain_meshes_module import \
     ApolloPlainMeshesModule
 from apollo_toolbox_py.apollo_py.apollo_py_robotics.robot_preprocessed_modules.urdf_module import ApolloURDFModule
-from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType
+from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Device, DType, Backend
 from apollo_toolbox_py.apollo_py.path_buf import PathBuf
 # from apollo_toolbox_py.apollo_py.path_buf import PathBufPyWrapper
 from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.robot_runtime_modules.urdf_numpy_module import \
@@ -112,6 +112,6 @@ class ResourcesSubDirectory:
         from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_robotics.chain_numpy import ChainNumpy
         return ChainNumpy(self)
 
-    def to_chain_tensorly(self, device: Device = Device.CPU, dtype: DType = DType.Float64):
+    def to_chain_tensorly(self, backend: Backend = Backend.Numpy, device: Device = Device.CPU, dtype: DType = DType.Float64):
         from apollo_toolbox_py.apollo_py_tensorly.apollo_py_tensorly_robotics.chain_tensorly import ChainTensorly
-        return ChainTensorly(self, device, dtype)
+        return ChainTensorly(self, backend, device, dtype)
