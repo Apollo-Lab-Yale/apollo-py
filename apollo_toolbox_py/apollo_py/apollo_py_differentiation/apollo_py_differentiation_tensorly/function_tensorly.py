@@ -9,6 +9,7 @@ import tensorly as tl
 
 
 class FunctionTensorly(ABC):
+
     def call(self, x: tl.tensor) -> tl.tensor:
         assert x.shape == (self.input_dim(),)
         out = T2.new_from_heterogeneous_array(self.call_raw(x))
@@ -29,6 +30,7 @@ class FunctionTensorly(ABC):
 
 
 class TestFunction(FunctionTensorly):
+
     def call_raw(self, x: tl.tensor) -> List[tl.tensor]:
         return [tl.sin(x[0])]
 

@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+import jax
+
 from apollo_toolbox_py.apollo_py.apollo_py_differentiation.apollo_py_differentiation_tensorly.function_tensorly import \
     FunctionTensorly
 from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Backend
@@ -13,6 +15,10 @@ from apollo_toolbox_py.apollo_py.extra_tensorly_backend import ExtraBackend as T
 class DerivativeMethodTensorly(ABC):
     @abstractmethod
     def allowable_backends(self) -> List[Backend]:
+        pass
+
+    @abstractmethod
+    def default_backend(self) -> Backend:
         pass
 
     @abstractmethod
@@ -34,6 +40,9 @@ class DerivativeMethodFD(DerivativeMethodTensorly):
     def allowable_backends(self) -> List[Backend]:
         return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
 
+    def default_backend(self) -> Backend:
+        return Backend.Numpy
+
     def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
         fx = f.call(x)
         dfdx = tl.zeros((f.output_dim(), f.input_dim()), device=getattr(x, 'device', None), dtype=x.dtype)
@@ -45,5 +54,39 @@ class DerivativeMethodFD(DerivativeMethodTensorly):
             fh = f.call(x_delta_x)
             col = (fh - fx) / self.epsilon
             dfdx = T2.set_and_return(dfdx, (slice(None), i), col)
+
+        return fx, dfdx
+
+
+class DerivativeMethodReverseADJax(DerivativeMethodTensorly):
+    def __init__(self, f: FunctionTensorly):
+        self.jac_fn = jax.jacrev(f.call)
+
+    def allowable_backends(self) -> List[Backend]:
+        return [Backend.JAX]
+
+    def default_backend(self) -> Backend:
+        return Backend.JAX
+
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
+        fx = f.call(x)
+        dfdx = self.jac_fn(x)
+
+        return fx, dfdx
+
+
+class DerivativeMethodForwardADJax(DerivativeMethodTensorly):
+    def __init__(self, f: FunctionTensorly):
+        self.jac_fn = jax.jacfwd(f.call)
+
+    def allowable_backends(self) -> List[Backend]:
+        return [Backend.JAX]
+
+    def default_backend(self) -> Backend:
+        return Backend.JAX
+
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
+        fx = f.call(x)
+        dfdx = self.jac_fn(x)
 
         return fx, dfdx

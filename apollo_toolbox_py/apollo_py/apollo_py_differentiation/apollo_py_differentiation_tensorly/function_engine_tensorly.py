@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numba
 
 try:
@@ -23,11 +25,15 @@ class FunctionEngine:
     def __init__(self,
                  f: FunctionTensorly,
                  d: DerivativeMethodTensorly,
-                 backend: Backend = Backend.Numpy,
+                 backend: Optional[Backend] = None,
                  device: Device = Device.CPU,
                  dtype: DType = DType.Float64,
                  jit_compile_f: bool = False,
                  jit_compile_d: bool = False):
+
+        if not backend:
+            backend = d.default_backend()
+
         assert d.allowable_backends().__contains__(backend), 'Backend {} not allowable for derivative method {}.  Legal methods are {}'.format(backend, d, d.allowable_backends())
 
         self.backend = backend
