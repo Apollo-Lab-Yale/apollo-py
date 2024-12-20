@@ -29,7 +29,7 @@ class DerivativeMethodTensorly(ABC):
         assert x.shape == (f.input_dim(),)
         fx, dfdx = self.derivative_raw(f, x)
         assert fx.shape == (f.output_dim(),)
-        assert dfdx.shape == (f.output_dim(), f.input_dim())
+        assert dfdx.shape == (f.output_dim(), f.input_dim()), 'shape is {}'.format(dfdx.shape)
         return fx, dfdx
 
 
@@ -88,5 +88,28 @@ class DerivativeMethodForwardADJax(DerivativeMethodTensorly):
     def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
         fx = f.call(x)
         dfdx = self.jac_fn(x)
+
+        return fx, dfdx
+
+
+class DerivativeMethodReverseADPytorch(DerivativeMethodTensorly):
+    def allowable_backends(self) -> List[Backend]:
+        return [Backend.PyTorch]
+
+    def default_backend(self) -> Backend:
+        return Backend.PyTorch
+
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
+        dfdx = tl.zeros(f.output_dim(), f.input_dim(), device=getattr(x, 'device', None), dtype=x.dtype)
+
+        x.requires_grad = True
+        fx = f.call(x)
+        for i in range(f.input_dim()):
+            if x.grad is not None:
+                x.grad.zero_()
+
+            fx[i].backward(retain_graph=True)
+            col = x.grad.clone()
+            dfdx[:, i] = col
 
         return fx, dfdx
