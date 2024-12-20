@@ -8,6 +8,7 @@ from apollo_toolbox_py.apollo_py.apollo_py_differentiation.apollo_py_differentia
     TestFunction
 from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Backend
 import time
+import tensorly as tl
 
 f = TestFunction()
 d = DerivativeMethodReverseADPytorch()
@@ -17,9 +18,8 @@ fe = FunctionEngine(f, d, jit_compile_f=False, jit_compile_d=False)
 fe.derivative(np.array([0.0, 1.0]))
 
 start = time.time()
-fx, dfdx = fe.derivative(np.array([0.0, 1.0]))
+dfdx = fe.derivative(np.array([0.0, 1.0]))
 end = time.time() - start
 
-print(fx)
 print(dfdx)
 print(end)

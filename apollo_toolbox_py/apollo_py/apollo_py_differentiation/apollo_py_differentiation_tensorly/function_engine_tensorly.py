@@ -53,8 +53,7 @@ class FunctionEngine:
 
         if jit_compile_f:
             if backend == Backend.Numpy:
-                print('WARNING: jit compilation not currently supported with Numpy backend')
-                # self.f_call = numba.jit(self.f_call)
+                print('WARNING: jit compilation on function not currently supported with Numpy backend')
             elif backend == Backend.JAX:
                 self.f_call = jax.jit(self.f_call)
             elif backend == Backend.PyTorch:
@@ -64,12 +63,11 @@ class FunctionEngine:
 
         if jit_compile_d:
             if backend == Backend.Numpy:
-                pass
-                # self.d_call = numba.jit(self.d_call)
+                print('WARNING: jit compilation on derivative not currently supported with Numpy backend')
             elif backend == Backend.JAX:
                 self.d_call = jax.jit(self.d_call)
             elif backend == Backend.PyTorch:
-                self.d_call = torch.jit.trace(self.d_call, torch.randn((f.input_dim())))
+                print('WARNING: jit compilation on derivative not currently supported with PyTorch backend')
             else:
                 raise NotImplementedError(f"Backend {backend} is not supported.")
 

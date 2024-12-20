@@ -22,15 +22,14 @@ class DerivativeMethodTensorly(ABC):
         pass
 
     @abstractmethod
-    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
         pass
 
-    def derivative(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
+    def derivative(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
         assert x.shape == (f.input_dim(),)
-        fx, dfdx = self.derivative_raw(f, x)
-        assert fx.shape == (f.output_dim(),)
+        dfdx = self.derivative_raw(f, x)
         assert dfdx.shape == (f.output_dim(), f.input_dim()), 'shape is {}'.format(dfdx.shape)
-        return fx, dfdx
+        return dfdx
 
 
 class DerivativeMethodFD(DerivativeMethodTensorly):
@@ -43,7 +42,7 @@ class DerivativeMethodFD(DerivativeMethodTensorly):
     def default_backend(self) -> Backend:
         return Backend.Numpy
 
-    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
         fx = f.call(x)
         dfdx = tl.zeros((f.output_dim(), f.input_dim()), device=getattr(x, 'device', None), dtype=x.dtype)
 
@@ -55,12 +54,12 @@ class DerivativeMethodFD(DerivativeMethodTensorly):
             col = (fh - fx) / self.epsilon
             dfdx = T2.set_and_return(dfdx, (slice(None), i), col)
 
-        return fx, dfdx
+        return dfdx
 
 
 class DerivativeMethodReverseADJax(DerivativeMethodTensorly):
-    def __init__(self, f: FunctionTensorly):
-        self.jac_fn = jax.jacrev(f.call)
+    def __init__(self):
+        self.jac_fn = None
 
     def allowable_backends(self) -> List[Backend]:
         return [Backend.JAX]
@@ -68,16 +67,16 @@ class DerivativeMethodReverseADJax(DerivativeMethodTensorly):
     def default_backend(self) -> Backend:
         return Backend.JAX
 
-    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
-        fx = f.call(x)
-        dfdx = self.jac_fn(x)
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
+        if not self.jac_fn:
+            self.jac_fn = jax.jacrev(f.call)
 
-        return fx, dfdx
+        return self.jac_fn(x)
 
 
 class DerivativeMethodForwardADJax(DerivativeMethodTensorly):
-    def __init__(self, f: FunctionTensorly):
-        self.jac_fn = jax.jacfwd(f.call)
+    def __init__(self):
+        self.jac_fn = None
 
     def allowable_backends(self) -> List[Backend]:
         return [Backend.JAX]
@@ -85,11 +84,11 @@ class DerivativeMethodForwardADJax(DerivativeMethodTensorly):
     def default_backend(self) -> Backend:
         return Backend.JAX
 
-    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
-        fx = f.call(x)
-        dfdx = self.jac_fn(x)
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
+        if not self.jac_fn:
+            self.jac_fn = jax.jacrev(f.call)
 
-        return fx, dfdx
+        return self.jac_fn(x)
 
 
 class DerivativeMethodReverseADPytorch(DerivativeMethodTensorly):
@@ -99,7 +98,7 @@ class DerivativeMethodReverseADPytorch(DerivativeMethodTensorly):
     def default_backend(self) -> Backend:
         return Backend.PyTorch
 
-    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> (tl.tensor, tl.tensor):
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
         dfdx = tl.zeros(f.output_dim(), f.input_dim(), device=getattr(x, 'device', None), dtype=x.dtype)
 
         x.requires_grad = True
@@ -112,4 +111,4 @@ class DerivativeMethodReverseADPytorch(DerivativeMethodTensorly):
             col = x.grad.clone()
             dfdx[:, i] = col
 
-        return fx, dfdx
+        return dfdx
