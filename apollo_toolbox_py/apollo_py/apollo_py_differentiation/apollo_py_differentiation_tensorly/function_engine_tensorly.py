@@ -39,6 +39,8 @@ class FunctionEngine:
         self.backend = backend
         self.device = device
         self.dtype = dtype
+        self.f = f
+        self.d = d
 
         tl.set_backend(backend.to_string())
 

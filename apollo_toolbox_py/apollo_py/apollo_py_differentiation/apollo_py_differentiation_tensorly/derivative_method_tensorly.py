@@ -116,8 +116,13 @@ class DerivativeMethodReverseADPytorch(DerivativeMethodTensorly):
 
 
 class DerivativeMethodWASP(DerivativeMethodTensorly):
-    def __init__(self):
-        pass
+    def __init__(self, n: int, m: int, backend: Backend, orthonormal: bool = True, d_ell=0.3, d_theta=0.3, device: Device = Device.CPU,
+                 dtype: DType = DType.Float64):
+        tl.set_backend(backend.to_string())
+        self.cache = WASPCache(n, m, orthonormal, device, dtype)
+        self.num_f_calls = 0
+        self.d_theta = d_theta
+        self.d_ell = d_ell
 
     def allowable_backends(self) -> List[Backend]:
         return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
@@ -126,7 +131,42 @@ class DerivativeMethodWASP(DerivativeMethodTensorly):
         return Backend.Numpy
 
     def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
-        pass
+        self.num_f_calls = 0
+        f_k = f.call(x)
+        self.num_f_calls += 1
+        epsilon = 0.000001
+
+        cache = self.cache
+
+        while True:
+            i = self.cache.i
+
+            delta_x_i = cache.delta_x[:, i]
+
+            x_k_plus_delta_x_i = x + epsilon * delta_x_i
+            f_k_plus_delta_x_i = f.call(x_k_plus_delta_x_i)
+            self.num_f_calls += 1
+            delta_f_i = (f_k_plus_delta_x_i - f_k) / epsilon
+            delta_f_i_hat = cache.delta_f_t[i, :]
+            return_result = close_enough(delta_f_i, delta_f_i_hat, self.d_theta, self.d_ell)
+
+            # cache.delta_f_t[i, :] = delta_f_i
+            cache.delta_f_t = T2.set_and_return(cache.delta_f_t, (i, slice(None)), delta_f_i)
+            c_1_mat = cache.c_1[i]
+            c_2_mat = cache.c_2[i]
+            delta_f_t = cache.delta_f_t
+            delta_f_i = tl.reshape(delta_f_i, (-1, 1))
+
+            d_t_star = c_1_mat@delta_f_t + c_2_mat@delta_f_i.T
+            d_star = d_t_star.T
+
+            new_i = i + 1
+            if new_i >= len(x):
+                new_i = 0
+            cache.i = new_i
+
+            if return_result:
+                return d_star
 
 
 class WASPCache:
@@ -143,7 +183,7 @@ class WASPCache:
         eye = T2.new(np.eye(n, n), device=device, dtype=dtype)
 
         for i in range(n):
-            delta_x_i = delta_x[:, i:i+1]
+            delta_x_i = delta_x[:, i:i + 1]
             s_i = delta_x_i.T @ a_inv_mat @ delta_x_i
             s_i_inv = 1.0 / s_i
             c_1_mat = a_inv_mat @ (eye - s_i_inv * delta_x_i @ delta_x_i.T @ a_inv_mat) @ (2.0 * delta_x)
@@ -152,6 +192,7 @@ class WASPCache:
             self.c_2.append(c_2_mat)
 
         self.delta_x = delta_x
+
 
 def get_tangent_matrix(n: int, orthonormal: bool, device: Device = Device.CPU,
                        dtype: DType = DType.Float64) -> tl.tensor:
