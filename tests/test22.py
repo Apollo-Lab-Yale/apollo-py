@@ -1,25 +1,29 @@
 import numpy as np
 
 from apollo_toolbox_py.apollo_py.apollo_py_differentiation.apollo_py_differentiation_tensorly.derivative_method_tensorly import \
-    close_enough, get_tangent_matrix, WASPCache, DerivativeMethodWASP
-import tensorly as tl
-
+    DerivativeMethodFD, DerivativeMethodReverseADJax
 from apollo_toolbox_py.apollo_py.apollo_py_differentiation.apollo_py_differentiation_tensorly.function_engine_tensorly import \
     FunctionEngine
 from apollo_toolbox_py.apollo_py.apollo_py_differentiation.apollo_py_differentiation_tensorly.function_tensorly import \
-    TestFunction
-from apollo_toolbox_py.apollo_py.extra_tensorly_backend import ExtraBackend as T2, Backend
+    BenchmarkFunction
+import tensorly as tl
+import time
 
-b = Backend.Numpy
-f = TestFunction()
-d = DerivativeMethodWASP(f.input_dim(), f.output_dim(), b)
-fe = FunctionEngine(f, d, b, jit_compile_f=True)
+from apollo_toolbox_py.apollo_py.extra_tensorly_backend import Backend, Device
 
-print(fe.derivative([1., 2.]))
-print(fe.d.num_f_calls)
+f = BenchmarkFunction(10, 10, 1000)
+d = DerivativeMethodReverseADJax()
+fe = FunctionEngine(f, d, backend=Backend.JAX, device=Device.CPU, jit_compile_f=True, jit_compile_d=True)
 
-print(fe.derivative([1., 2.]))
-print(fe.d.num_f_calls)
+start = time.time()
+res = fe.derivative(tl.tensor(np.random.uniform(-1, 1, (10, ))))
+duration = time.time() - start
+print(duration)
+print('got here')
 
-print(fe.derivative([1., 2.]))
-print(fe.d.num_f_calls)
+start = time.time()
+for i in range(1):
+    res = fe.derivative(np.random.uniform(-1, 1, (10, )))
+duration = time.time() - start
+print(res)
+print(duration)
