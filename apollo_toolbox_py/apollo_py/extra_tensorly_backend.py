@@ -72,6 +72,7 @@ class ExtraBackend:
                 try:
                     de = jax.devices("gpu")[0]
                 except:
+                    print('gpu device not found for jax, defaulting to cpu')
                     de = jax.devices("cpu")[0]
             else:
                 raise ValueError('Unsupported device')

@@ -160,6 +160,9 @@ class DerivativeMethodWASP(DerivativeMethodTensorly):
             d_t_star = c_1_mat@delta_f_t + c_2_mat@delta_f_i.T
             d_star = d_t_star.T
 
+            tmp = d_star @ cache.delta_x
+            cache.delta_f_t = tmp.T
+
             new_i = i + 1
             if new_i >= len(x):
                 new_i = 0
