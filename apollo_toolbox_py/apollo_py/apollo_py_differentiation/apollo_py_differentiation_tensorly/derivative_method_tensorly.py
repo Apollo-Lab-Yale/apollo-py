@@ -104,13 +104,13 @@ class DerivativeMethodReverseADPytorch(DerivativeMethodTensorly):
 
         x.requires_grad = True
         fx = f.call(x)
-        for i in range(f.input_dim()):
+        for i in range(f.output_dim()):
             if x.grad is not None:
                 x.grad.zero_()
 
             fx[i].backward(retain_graph=True)
             col = x.grad.clone()
-            dfdx[:, i] = col
+            dfdx[i, :] = col
 
         return dfdx
 
