@@ -217,8 +217,16 @@ def close_enough(a: tl.tensor, b: tl.tensor, d_theta: float, d_ell: float):
     if tmp > d_theta:
         return False
 
-    tmp = tl.abs((a_n / b_n) - 1.0)
-    if tmp > d_ell:
+    if not b_n == 0.0:
+        tmp1 = tl.abs((a_n / b_n) - 1.0)
+    else:
+        tmp1 = 10000000.0
+    if not a_n == 0.0:
+        tmp2 = tl.abs((b_n / a_n) - 1.0)
+    else:
+        tmp2 = 10000000.0
+
+    if min(tmp1, tmp2) > d_ell:
         return False
 
     return True
