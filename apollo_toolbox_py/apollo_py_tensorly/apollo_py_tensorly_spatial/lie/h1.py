@@ -44,7 +44,8 @@ class LieAlgH1(Quaternion):
             return LieGroupH1(T2.new_from_heterogeneous_array([cc, ss * v[0], ss * v[1], ss * v[2]]))
 
     def vee(self) -> V3:
-        w, x, y, z = self
+        # w, x, y, z = self
+        w, x, y, z = self[0], self[1], self[2], self[3]
         return V3(T2.new_from_heterogeneous_array([x, y, z]))
 
     def __repr__(self) -> str:
