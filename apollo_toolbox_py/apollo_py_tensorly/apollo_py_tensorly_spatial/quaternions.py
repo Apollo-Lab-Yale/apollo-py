@@ -12,6 +12,10 @@ import copy
 class Quaternion:
     def __init__(self, wxyz_array: Union[List[float], np.ndarray, V4], device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
+        if isinstance(wxyz_array, Quaternion):
+            self.array = wxyz_array.array
+            return
+
         if isinstance(wxyz_array, V4):
             self.array = wxyz_array
             return
@@ -86,7 +90,11 @@ class Quaternion:
 class UnitQuaternion(Quaternion):
     def __init__(self, wxyz_array: Union[List[float], np.ndarray, V4], device: Device = Device.CPU,
                  dtype: DType = DType.Float64, auto_normalize=True):
-        super().__init__(wxyz_array, device, dtype)
+        if isinstance(wxyz_array, UnitQuaternion):
+            self.array = wxyz_array.array
+        else:
+            super().__init__(wxyz_array, device, dtype)
+
         if auto_normalize:
             self.array = self.array.normalize()
         else:

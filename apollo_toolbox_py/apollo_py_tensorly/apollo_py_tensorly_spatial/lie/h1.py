@@ -11,6 +11,13 @@ class LieGroupH1(UnitQuaternion):
     def identity(cls, device: Device = Device.CPU, dtype: DType = DType.Float64) -> 'LieGroupH1':
         return cls([1., 0., 0., 0.], device, dtype)
 
+    @classmethod
+    def from_unit_quaternion(cls, quaternion: 'UnitQuaternion') -> 'UnitQuaternion':
+        return cls(quaternion)
+
+    def group_operator(self, other: 'LieGroupH1') -> 'LieGroupH1':
+        return LieGroupH1(self @ other)
+
     def ln(self):
         w, x, y, z = self[0], self[1], self[2], self[3]
         acos = tl.acos(T2.min(w, tl.tensor(1.0, device=getattr(w, "device", None), dtype=w.dtype)))
@@ -19,6 +26,9 @@ class LieGroupH1(UnitQuaternion):
         else:
             ss = acos / tl.sin(acos)
             return LieAlgH1(T2.new_from_heterogeneous_array([0, ss * x, ss * y, ss * z]))
+
+    def displacement(self, other: 'LieGroupH1') -> 'LieGroupH1':
+        return self.inverse().group_operator(other)
 
     def __repr__(self) -> str:
         return f"LieGroupH1(\n{self.array.array}\n)"
