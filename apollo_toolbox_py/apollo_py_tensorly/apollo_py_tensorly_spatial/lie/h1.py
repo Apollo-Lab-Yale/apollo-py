@@ -12,11 +12,11 @@ class LieGroupH1(UnitQuaternion):
         return cls([1., 0., 0., 0.], device, dtype)
 
     @classmethod
-    def from_unit_quaternion(cls, quaternion: 'UnitQuaternion') -> 'UnitQuaternion':
+    def from_unit_quaternion(cls, quaternion: 'UnitQuaternion') -> 'LieGroupH1':
         return cls(quaternion)
 
     def group_operator(self, other: 'LieGroupH1') -> 'LieGroupH1':
-        return LieGroupH1(self @ other)
+        return LieGroupH1.from_unit_quaternion(self @ other)
 
     def ln(self):
         w, x, y, z = self[0], self[1], self[2], self[3]
@@ -26,6 +26,9 @@ class LieGroupH1(UnitQuaternion):
         else:
             ss = acos / tl.sin(acos)
             return LieAlgH1(T2.new_from_heterogeneous_array([0, ss * x, ss * y, ss * z]))
+
+    def inverse(self) -> 'LieGroupH1':
+        return LieGroupH1.from_unit_quaternion(self.conjugate())
 
     def displacement(self, other: 'LieGroupH1') -> 'LieGroupH1':
         return self.inverse().group_operator(other)
