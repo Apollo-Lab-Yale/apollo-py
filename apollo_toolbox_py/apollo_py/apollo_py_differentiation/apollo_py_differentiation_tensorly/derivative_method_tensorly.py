@@ -200,6 +200,7 @@ class WASPCache:
 
 class DerivativeMethodWASP2(DerivativeMethodTensorly):
     def __init__(self, n: int, m: int, backend: Backend, alpha: float = 0.98, orthonormal: bool = True, d_ell=0.3, d_theta=0.3,
+                 max_f_calls: int = 9999999,
                  device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
         tl.set_backend(backend.to_string())
@@ -207,6 +208,7 @@ class DerivativeMethodWASP2(DerivativeMethodTensorly):
         self.num_f_calls = 0
         self.d_theta = d_theta
         self.d_ell = d_ell
+        self.max_f_calls = max_f_calls
 
     def allowable_backends(self) -> List[Backend]:
         return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
@@ -252,7 +254,7 @@ class DerivativeMethodWASP2(DerivativeMethodTensorly):
                 new_i = 0
             cache.i = new_i
 
-            if return_result:
+            if return_result or self.num_f_calls >= self.max_f_calls:
                 return d_star
 
 
