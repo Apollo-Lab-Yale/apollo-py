@@ -232,6 +232,7 @@ class DerivativeMethodWASP2(DerivativeMethodTensorly):
             self.num_f_calls += 1
             delta_f_i = (f_k_plus_delta_x_i - f_k) / epsilon
             # delta_f_i_hat = cache.delta_f_t[i, :]
+            # tmp = tl.reshape(delta_x_i, (-1, 1))
             delta_f_i_hat = self.cache.curr_d @ delta_x_i
             return_result = close_enough(delta_f_i, delta_f_i_hat, self.d_theta, self.d_ell)
 
@@ -259,7 +260,7 @@ class WASPCache2:
     def __init__(self, n: int, m: int, alpha: float = 0.98, orthonormal_delta_x: bool = True, device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
         self.i = 0
-        self.curr_d = T2.new(np.zeros((n, m)), device=device, dtype=dtype)
+        self.curr_d = T2.new(np.zeros((m, n)), device=device, dtype=dtype)
         self.delta_f_t = T2.new(np.eye(n, m), device=device, dtype=dtype)
         delta_x = get_tangent_matrix(n, orthonormal_delta_x, device, dtype)
         self.c_1 = []
@@ -307,6 +308,9 @@ def get_tangent_matrix(n: int, orthonormal: bool, device: Device = Device.CPU,
 def close_enough(a: tl.tensor, b: tl.tensor, d_theta: float, d_ell: float):
     a_n = tl.norm(a)
     b_n = tl.norm(b)
+
+    if a_n == 0.0 or b_n == 0.0:
+        return False
 
     tmp = tl.abs((tl.dot(a, b) / (a_n * b_n)) - 1.0)
     if tmp > d_theta:
