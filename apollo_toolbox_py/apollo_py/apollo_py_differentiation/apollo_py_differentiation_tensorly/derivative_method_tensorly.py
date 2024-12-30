@@ -199,7 +199,7 @@ class WASPCache:
 
 
 class DerivativeMethodWASP2(DerivativeMethodTensorly):
-    def __init__(self, n: int, m: int, alpha: float, backend: Backend, orthonormal: bool = True, d_ell=0.3, d_theta=0.3,
+    def __init__(self, n: int, m: int, backend: Backend, alpha: float = 0.98, orthonormal: bool = True, d_ell=0.3, d_theta=0.3,
                  device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
         tl.set_backend(backend.to_string())
@@ -256,10 +256,10 @@ class DerivativeMethodWASP2(DerivativeMethodTensorly):
 
 
 class WASPCache2:
-    def __init__(self, n: int, m: int, alpha: float, orthonormal_delta_x: bool = True, device: Device = Device.CPU,
+    def __init__(self, n: int, m: int, alpha: float = 0.98, orthonormal_delta_x: bool = True, device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
         self.i = 0
-        self.curr_d = T2.new(np.zeros(n, m), device=device, dtype=dtype)
+        self.curr_d = T2.new(np.zeros((n, m)), device=device, dtype=dtype)
         self.delta_f_t = T2.new(np.eye(n, m), device=device, dtype=dtype)
         delta_x = get_tangent_matrix(n, orthonormal_delta_x, device, dtype)
         self.c_1 = []
@@ -269,10 +269,10 @@ class WASPCache2:
 
         for i in range(n):
             delta_x_i = delta_x[:, i:i + 1]
-            w_i = T2.new(np.zeros(n, n), device=device, dtype=dtype)
+            w_i = T2.new(np.zeros((n, n)), device=device, dtype=dtype)
             for j in range(n):
                 exponent = float(math_mod(i - j, n)) / float(n - 1)
-                w_i = T2.set_and_return(w_i, (j, j), exponent)
+                w_i = T2.set_and_return(w_i, (j, j), alpha * (1.0 - alpha)**exponent)
             w_i_2 = w_i @ w_i
 
             a_i = 2.0 * delta_x @ w_i_2 @ delta_x.T
