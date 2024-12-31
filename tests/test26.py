@@ -1,5 +1,10 @@
-from apollo_toolbox_py.apollo_py.apollo_py_differentiation.apollo_py_differentiation_tensorly.derivative_method_tensorly import \
-    WASPCache2
+import numpy as np
 
-w = WASPCache2(3, 4, 5)
-print(w.delta_x)
+# Example: n x h matrix and n x 1 vector
+A = np.random.rand(4, 5)  # 4 x 5 matrix
+v = np.random.rand(4, 1)  # 4 x 1 vector
+
+# Subtract v from each column of A
+distances = np.linalg.norm(A - v, axis=0)
+
+print(distances)

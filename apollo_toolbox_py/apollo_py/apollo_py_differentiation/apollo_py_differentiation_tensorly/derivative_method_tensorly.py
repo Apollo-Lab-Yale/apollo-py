@@ -199,7 +199,8 @@ class WASPCache:
 
 
 class DerivativeMethodWASP2(DerivativeMethodTensorly):
-    def __init__(self, n: int, m: int, backend: Backend, alpha: float = 0.98, orthonormal: bool = True, d_ell=0.3, d_theta=0.3,
+    def __init__(self, n: int, m: int, backend: Backend, alpha: float = 0.98, orthonormal: bool = True, d_ell=0.3,
+                 d_theta=0.3,
                  max_f_calls: int = 9999999,
                  device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
@@ -259,7 +260,8 @@ class DerivativeMethodWASP2(DerivativeMethodTensorly):
 
 
 class WASPCache2:
-    def __init__(self, n: int, m: int, alpha: float = 0.98, orthonormal_delta_x: bool = True, device: Device = Device.CPU,
+    def __init__(self, n: int, m: int, alpha: float = 0.98, orthonormal_delta_x: bool = True,
+                 device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
         self.i = 0
         self.curr_d = T2.new(np.zeros((m, n)), device=device, dtype=dtype)
@@ -275,7 +277,7 @@ class WASPCache2:
             w_i = T2.new(np.zeros((n, n)), device=device, dtype=dtype)
             for j in range(n):
                 exponent = float(math_mod(i - j, n)) / float(n - 1)
-                w_i = T2.set_and_return(w_i, (j, j), alpha * (1.0 - alpha)**exponent)
+                w_i = T2.set_and_return(w_i, (j, j), alpha * (1.0 - alpha) ** exponent)
             w_i_2 = w_i @ w_i
 
             a_i = 2.0 * delta_x @ w_i_2 @ delta_x.T
@@ -289,6 +291,107 @@ class WASPCache2:
             self.c_2.append(c_2_mat)
 
         self.delta_x = delta_x
+
+
+class DerivativeMethodWASP3(DerivativeMethodTensorly):
+    def __init__(self, n: int, m: int, backend=Backend, h: int = None, device: Device = Device.CPU,
+                 dtype: DType = DType.Float64):
+        if h is None:
+            h = n
+
+        assert h > 0
+
+        tl.set_backend(backend.to_string())
+
+        self.n = n
+        self.m = m
+        self.h = h
+        self.device = device
+        self.dtype = dtype
+
+        self.first_pass = True
+
+        self.delta_x = T2.new(np.zeros((m, n)), device=device, dtype=dtype)
+        self.w = T2.new(np.eye(h, h), device=device, dtype=dtype)
+        self.delta_f_t = T2.new(np.zeros((n, m)), device=device, dtype=dtype)
+        self.eye = T2.new(np.eye(n, n), device=device, dtype=dtype)
+
+        self.x_inputs = T2.new(np.zeros((n, h)), device=device, dtype=dtype)
+        self.f_outputs = T2.new(np.zeros((m, h)), device=device, dtype=dtype)
+
+    def allowable_backends(self) -> List[Backend]:
+        return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
+
+    def default_backend(self) -> Backend:
+        return Backend.Numpy
+
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
+        if self.first_pass:
+            for i in range(self.h):
+                r = T2.new(np.random.uniform(-0.00001, 0.00001, (self.n,)), self.device, self.dtype)
+                rpx = x + r
+                frpx = f.call(rpx)
+                self.x_inputs = T2.set_and_return(self.x_inputs, (slice(None), i), rpx)
+                self.f_outputs = T2.set_and_return(self.f_outputs, (slice(None), i), frpx)
+            self.first_pass = False
+
+        x = x + T2.new(np.random.uniform(-0.000001, 0.000001), self.device, self.dtype)
+        x_as_mat = tl.reshape(x, (-1, 1))
+        fx = f.call(x)
+        fx_as_mat = tl.reshape(fx, (-1, 1))
+
+        distances = tl.norm(self.x_inputs - x_as_mat, axis=0)
+        w_diag_squared = (0.01 / distances) ** 2
+
+        W2 = tl.diag(w_diag_squared)
+        Delta_x = self.x_inputs - x_as_mat
+        Delta_f_hat = self.f_outputs - fx_as_mat
+
+        max_distance_idx = tl.argmax(distances)
+        min_distance_idx = tl.argmin(distances)
+
+        delta_x_i = Delta_x[:, min_distance_idx:min_distance_idx + 1]
+        delta_f_i = Delta_f_hat[:, min_distance_idx:min_distance_idx + 1]
+
+        eye = self.eye
+        A = 2.0 * Delta_x @ W2 @ Delta_x.T
+        A_inv = T2.inv(A)
+        s = (delta_x_i.T @ A_inv @ delta_x_i)[0, 0]
+        s_inv = 1.0 / s
+
+        DT = A_inv @ (eye - s_inv * delta_x_i @ delta_x_i.T @ A_inv) @ (2.0 * Delta_x @ W2 @ Delta_f_hat.T) + s_inv * A_inv @ delta_x_i @ delta_f_i.T
+
+        self.x_inputs = T2.set_and_return(self.x_inputs, (slice(None), max_distance_idx), x)
+        self.f_outputs = T2.set_and_return(self.f_outputs, (slice(None), max_distance_idx), fx)
+
+        return DT.T
+
+
+'''
+class WASPCache3:
+    def __init__(self, n: int, m: int, h: int = None, device: Device = Device.CPU,
+                 dtype: DType = DType.Float64):
+        if h is None:
+            h = n
+
+        assert h > 0
+
+        self.n = n
+        self.m = m
+        self.h = h
+        self.device = device
+        self.dtype = dtype
+
+        self.first_pass = True
+
+        self.delta_x = T2.new(np.zeros((m, n)), device=device, dtype=dtype)
+        self.w = T2.new(np.eye(h, h), device=device, dtype=dtype)
+        self.delta_f_t = T2.new(np.zeros((n, m)), device=device, dtype=dtype)
+        self.eye = T2.new(np.eye(n, n), device=device, dtype=dtype)
+
+        self.x_inputs = []
+        self.f_outputs = []
+'''
 
 
 def math_mod(a: int, b: int) -> int:
