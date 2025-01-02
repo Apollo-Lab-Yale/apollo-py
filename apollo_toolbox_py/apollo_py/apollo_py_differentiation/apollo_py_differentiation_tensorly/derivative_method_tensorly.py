@@ -359,13 +359,185 @@ class DerivativeMethodWASP3(DerivativeMethodTensorly):
         s = (delta_x_i.T @ A_inv @ delta_x_i)[0, 0]
         s_inv = 1.0 / s
 
-        DT = A_inv @ (eye - s_inv * delta_x_i @ delta_x_i.T @ A_inv) @ (2.0 * Delta_x @ W2 @ Delta_f_hat.T) + s_inv * A_inv @ delta_x_i @ delta_f_i.T
+        DT = A_inv @ (eye - s_inv * delta_x_i @ delta_x_i.T @ A_inv) @ (
+                    2.0 * Delta_x @ W2 @ Delta_f_hat.T) + s_inv * A_inv @ delta_x_i @ delta_f_i.T
 
         self.x_inputs = T2.set_and_return(self.x_inputs, (slice(None), max_distance_idx), x)
         self.f_outputs = T2.set_and_return(self.f_outputs, (slice(None), max_distance_idx), fx)
 
         return DT.T
 
+
+class DerivativeMethodWASP4(DerivativeMethodTensorly):
+    def __init__(self, n: int, m: int, backend=Backend, d_ell: float = 0.1, d_theta: float = 0.1, orthogonal=True,
+                 delta_x_scaling: float = 0.2, device: Device = Device.CPU, dtype: DType = DType.Float64):
+        tl.set_backend(backend.to_string())
+
+        self.i = 0
+        self.n = n
+        self.m = m
+        self.d_ell = d_ell
+        self.d_theta = d_theta
+        self.device = device
+        self.dtype = dtype
+
+        self.D = T2.new(np.zeros((m, n)), device=device, dtype=dtype)
+        self.Delta_x = delta_x_scaling * get_tangent_matrix(n, orthogonal, device, dtype)
+        self.Delta_f_hat = T2.new(np.zeros((m, n)), device=device, dtype=dtype)
+        self.A = 2.0 * self.Delta_x @ self.Delta_x.T
+        self.A_inv = T2.inv(self.A)
+        self.eye = T2.new(np.eye(n, n), device=device, dtype=dtype)
+        self.x_prev = None
+        self.fx_prev = None
+        self.num_f_calls = 0
+
+    def allowable_backends(self) -> List[Backend]:
+        return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
+
+    def default_backend(self) -> Backend:
+        return Backend.Numpy
+
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
+        c = [self.i]
+        f_k = f.call(x)
+        self.num_f_calls = 1
+        if self.x_prev is None:
+            self.x_prev = x
+            self.fx_prev = f_k
+
+        first_loop = True
+        epsilon = 0.00001
+
+        while True:
+            i = self.i
+            if first_loop:
+                first_loop = False
+                for j in range(self.n):
+                    delta_x_i = self.Delta_x[:, j]
+                    self.Delta_f_hat[:, j] = self.fx_prev + self.D @ (x + delta_x_i - self.x_prev) - f_k
+            else:
+                self.Delta_f_hat = self.D @ self.Delta_x
+
+            delta_x_i = self.Delta_x[:, i]
+
+            x_k_plus_delta_x_i = x + epsilon * delta_x_i
+            f_k_plus_delta_x_i = f.call(x_k_plus_delta_x_i)
+            self.num_f_calls += 1
+            delta_f_i = (f_k_plus_delta_x_i - f_k) / epsilon
+            delta_f_i_hat = self.Delta_f_hat[:, i]
+            return_result = close_enough(delta_f_i, delta_f_i_hat, self.d_theta, self.d_ell)
+
+            self.Delta_f_hat[:, i] = delta_f_i
+            Delta_x_c = self.Delta_x[:, c]
+            Delta_f_c = self.Delta_f_hat[:, c]
+
+            eye = self.eye
+            A_inv = self.A_inv
+            Delta_x = self.Delta_x
+            Delta_f_hat = self.Delta_f_hat
+            S = (Delta_x_c.T @ A_inv @ Delta_x_c)
+            S_inv = T2.inv(S)
+
+            DT = A_inv @ (eye - Delta_x_c @ S_inv @ Delta_x_c.T @ A_inv) @ (
+                    2.0 * Delta_x @ Delta_f_hat.T) + A_inv @ Delta_x_c @ S_inv @ Delta_f_c.T
+
+            D = DT.T
+            self.D = D
+
+            new_i = i + 1
+            if new_i >= len(x):
+                new_i = 0
+            self.i = new_i
+            if len(c) < self.n:
+                c.append(new_i)
+
+            self.x_prev = x
+            self.fx_prev = f_k
+
+            if return_result:
+                return D
+
+class DerivativeMethodWASP5(DerivativeMethodTensorly):
+    def __init__(self, n: int, m: int, backend=Backend, d_ell: float = 0.2, d_theta: float = 0.2, orthonormal=True,
+                 device: Device = Device.CPU, dtype: DType = DType.Float64):
+        tl.set_backend(backend.to_string())
+
+        self.i = 0
+        self.n = n
+        self.m = m
+        self.d_ell = d_ell
+        self.d_theta = d_theta
+        self.device = device
+        self.dtype = dtype
+
+        self.D = T2.new(np.zeros((m, n)), device=device, dtype=dtype)
+        self.Delta_x = get_tangent_matrix(n, orthonormal, device, dtype)
+        self.Delta_f_hat = T2.new(np.zeros((m, n)), device=device, dtype=dtype)
+        self.A = 2.0 * self.Delta_x @ self.Delta_x.T
+        self.A_inv = T2.inv(self.A)
+        self.eye = T2.new(np.eye(n, n), device=device, dtype=dtype)
+        self.x_prev = None
+        self.fx_prev = None
+        self.num_f_calls = 0
+
+    def allowable_backends(self) -> List[Backend]:
+        return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
+
+    def default_backend(self) -> Backend:
+        return Backend.Numpy
+
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
+        c = [self.i]
+        f_k = f.call(x)
+        self.num_f_calls = 1
+        if self.x_prev is None:
+            self.x_prev = x
+            self.fx_prev = f_k
+
+        first_loop = True
+        epsilon = 0.00001
+
+        while True:
+            i = self.i
+            Delta_f_hat = self.D @ self.Delta_x
+
+            delta_x_i = self.Delta_x[:, i]
+
+            x_k_plus_delta_x_i = x + epsilon * delta_x_i
+            f_k_plus_delta_x_i = f.call(x_k_plus_delta_x_i)
+            self.num_f_calls += 1
+            delta_f_i = (f_k_plus_delta_x_i - f_k) / epsilon
+            delta_f_i_hat = Delta_f_hat[:, i]
+            return_result = close_enough(delta_f_i, delta_f_i_hat, self.d_theta, self.d_ell)
+
+            Delta_f_hat[:, i] = delta_f_i
+            Delta_x_c = self.Delta_x[:, c]
+            Delta_f_c = Delta_f_hat[:, c]
+
+            eye = self.eye
+            A_inv = self.A_inv
+            Delta_x = self.Delta_x
+            S = (Delta_x_c.T @ A_inv @ Delta_x_c)
+            S_inv = T2.inv(S)
+
+            DT = A_inv @ (eye - Delta_x_c @ S_inv @ Delta_x_c.T @ A_inv) @ (
+                    2.0 * Delta_x @ Delta_f_hat.T) + A_inv @ Delta_x_c @ S_inv @ Delta_f_c.T
+
+            D = DT.T
+            self.D = D
+
+            new_i = i + 1
+            if new_i >= len(x):
+                new_i = 0
+            self.i = new_i
+            if len(c) < self.n:
+                c.append(new_i)
+
+            self.x_prev = x
+            self.fx_prev = f_k
+
+            if return_result:
+                return D
 
 '''
 class WASPCache3:
@@ -434,3 +606,17 @@ def close_enough(a: tl.tensor, b: tl.tensor, d_theta: float, d_ell: float):
         return False
 
     return True
+
+
+def get_random_walk(n: int, num_waypoints: int, step_length: float) -> List[List[float]]:
+    out = []
+
+    curr = np.random.uniform(-1, 1, (n,))
+    for i in range(num_waypoints):
+        vel = np.random.uniform(-1, 1, (n,))
+        vel = step_length * (vel / np.linalg.norm(vel))
+        tmp = curr + vel
+        curr = tmp
+        out.append(tmp.tolist())
+
+    return out
