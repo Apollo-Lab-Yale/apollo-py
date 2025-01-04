@@ -201,11 +201,14 @@ class WASPCache:
 class DerivativeMethodWASP2(DerivativeMethodTensorly):
     def __init__(self, n: int, m: int, backend: Backend, alpha: float = 0.98, orthonormal: bool = True, d_ell=0.3,
                  d_theta=0.3,
+                 weighting: bool = True,
+                 update_delta_f_hat: bool = True,
                  max_f_calls: int = 9999999,
                  device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
         tl.set_backend(backend.to_string())
-        self.cache = WASPCache2(n, m, alpha, orthonormal, device, dtype)
+        self.cache = WASPCache2(n, m, weighting, alpha, orthonormal, device, dtype)
+        self.update_delta_f_hat = update_delta_f_hat
         self.num_f_calls = 0
         self.d_theta = d_theta
         self.d_ell = d_ell
@@ -236,7 +239,11 @@ class DerivativeMethodWASP2(DerivativeMethodTensorly):
             delta_f_i = (f_k_plus_delta_x_i - f_k) / epsilon
             # delta_f_i_hat = cache.delta_f_t[i, :]
             # tmp = tl.reshape(delta_x_i, (-1, 1))
-            delta_f_i_hat = self.cache.curr_d @ delta_x_i
+            if self.update_delta_f_hat:
+                delta_f_i_hat = self.cache.delta_f_t[i, :]
+            else:
+                delta_f_i_hat = self.cache.curr_d @ delta_x_i
+
             return_result = close_enough(delta_f_i, delta_f_i_hat, self.d_theta, self.d_ell)
 
             # cache.delta_f_t[i, :] = delta_f_i
@@ -250,6 +257,9 @@ class DerivativeMethodWASP2(DerivativeMethodTensorly):
             d_star = d_t_star.T
             self.cache.curr_d = d_star
 
+            if self.update_delta_f_hat:
+                self.cache.delta_f_t = self.cache.delta_x.T @ d_t_star
+
             new_i = i + 1
             if new_i >= len(x):
                 new_i = 0
@@ -260,7 +270,7 @@ class DerivativeMethodWASP2(DerivativeMethodTensorly):
 
 
 class WASPCache2:
-    def __init__(self, n: int, m: int, alpha: float = 0.98, orthonormal_delta_x: bool = True,
+    def __init__(self, n: int, m: int, weighting: True, alpha: float = 0.98, orthonormal_delta_x: bool = True,
                  device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
         self.i = 0
@@ -274,10 +284,13 @@ class WASPCache2:
 
         for i in range(n):
             delta_x_i = delta_x[:, i:i + 1]
-            w_i = T2.new(np.zeros((n, n)), device=device, dtype=dtype)
-            for j in range(n):
-                exponent = float(math_mod(i - j, n)) / float(n - 1)
-                w_i = T2.set_and_return(w_i, (j, j), alpha * (1.0 - alpha) ** exponent)
+            if weighting:
+                w_i = T2.new(np.zeros((n, n)), device=device, dtype=dtype)
+                for j in range(n):
+                    exponent = float(math_mod(i - j, n)) / float(n - 1)
+                    w_i = T2.set_and_return(w_i, (j, j), alpha * (1.0 - alpha) ** exponent)
+            else:
+                w_i = T2.new(np.eye(n), device=device, dtype=dtype)
             w_i_2 = w_i @ w_i
 
             a_i = 2.0 * delta_x @ w_i_2 @ delta_x.T
