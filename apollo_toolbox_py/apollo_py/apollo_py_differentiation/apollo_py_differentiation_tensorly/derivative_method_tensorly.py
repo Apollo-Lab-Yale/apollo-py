@@ -173,7 +173,7 @@ class DerivativeMethodWASP(DerivativeMethodTensorly):
                 new_i = 0
             cache.i = new_i
 
-            if return_result or self.num_f_calls == len(x)+1:
+            if return_result or self.num_f_calls == len(x) + 1:
                 return d_star
 
 
@@ -202,6 +202,38 @@ class WASPCache:
         self.delta_x = delta_x
 
 
+class DerivativeMethodSPSA(DerivativeMethodTensorly):
+    def __init__(self, device: Device = Device.CPU, dtype: DType = DType.Float64):
+        self.device = device
+        self.dtype = dtype
+
+    def allowable_backends(self) -> List[Backend]:
+        return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
+
+    def default_backend(self) -> Backend:
+        return Backend.Numpy
+
+    def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
+        # f0 = f.call(x)
+        epsilon = 0.0000001
+
+        delta_k = T2.new(np.random.uniform(-1, 1, (len(x), )), self.device, self.dtype)
+        # delta_k = T2.new(np.random.choice([-1, 1], size=len(x)), self.device, self.dtype)
+
+        xpos = x + epsilon*delta_k
+        xneg = x - epsilon*delta_k
+        fpos = f.call(xpos)
+        fneg = f.call(xneg)
+        v = (fpos - fneg) / (2.0*epsilon)
+        delta_k_inverse = 1.0 / delta_k
+        delta_k_inverse = tl.reshape(delta_k_inverse, (-1, 1))
+        v = tl.reshape(v, (-1, 1))
+
+        return v @ delta_k_inverse.T
+
+
+
+'''
 class DerivativeMethodWASP2(DerivativeMethodTensorly):
     def __init__(self, n: int, m: int, backend: Backend, alpha: float = 0.98, orthonormal: bool = True, d_ell=0.3,
                  d_theta=0.3,
@@ -377,7 +409,7 @@ class DerivativeMethodWASP3(DerivativeMethodTensorly):
         s_inv = 1.0 / s
 
         DT = A_inv @ (eye - s_inv * delta_x_i @ delta_x_i.T @ A_inv) @ (
-                    2.0 * Delta_x @ W2 @ Delta_f_hat.T) + s_inv * A_inv @ delta_x_i @ delta_f_i.T
+                2.0 * Delta_x @ W2 @ Delta_f_hat.T) + s_inv * A_inv @ delta_x_i @ delta_f_i.T
 
         self.x_inputs = T2.set_and_return(self.x_inputs, (slice(None), max_distance_idx), x)
         self.f_outputs = T2.set_and_return(self.f_outputs, (slice(None), max_distance_idx), fx)
@@ -474,6 +506,7 @@ class DerivativeMethodWASP4(DerivativeMethodTensorly):
             if return_result:
                 return D
 
+
 class DerivativeMethodWASP5(DerivativeMethodTensorly):
     def __init__(self, n: int, m: int, backend=Backend, d_ell: float = 0.2, d_theta: float = 0.2, orthonormal=True,
                  device: Device = Device.CPU, dtype: DType = DType.Float64):
@@ -555,6 +588,7 @@ class DerivativeMethodWASP5(DerivativeMethodTensorly):
 
             if return_result:
                 return D
+'''
 
 '''
 class WASPCache3:
