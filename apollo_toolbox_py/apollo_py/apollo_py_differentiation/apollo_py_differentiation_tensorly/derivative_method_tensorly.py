@@ -34,7 +34,7 @@ class DerivativeMethodTensorly(ABC):
 
 
 class DerivativeMethodFD(DerivativeMethodTensorly):
-    def __init__(self, epsilon=0.000001):
+    def __init__(self, epsilon=0.0000001):
         self.epsilon = epsilon
 
     def allowable_backends(self) -> List[Backend]:
@@ -124,6 +124,7 @@ class DerivativeMethodWASP(DerivativeMethodTensorly):
         self.num_f_calls = 0
         self.d_theta = d_theta
         self.d_ell = d_ell
+        self.fixed_i = None
 
     def allowable_backends(self) -> List[Backend]:
         return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
@@ -135,12 +136,15 @@ class DerivativeMethodWASP(DerivativeMethodTensorly):
         self.num_f_calls = 0
         f_k = f.call(x)
         self.num_f_calls += 1
-        epsilon = 0.000001
+        epsilon = 0.00000001
 
         cache = self.cache
 
         while True:
-            i = self.cache.i
+            if self.fixed_i is None:
+                i = self.cache.i
+            else:
+                i = self.fixed_i
 
             delta_x_i = cache.delta_x[:, i]
 
@@ -169,7 +173,7 @@ class DerivativeMethodWASP(DerivativeMethodTensorly):
                 new_i = 0
             cache.i = new_i
 
-            if return_result:
+            if return_result or self.num_f_calls == len(x)+1:
                 return d_star
 
 
