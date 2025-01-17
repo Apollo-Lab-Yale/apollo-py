@@ -120,11 +120,21 @@ class DerivativeMethodWASP(DerivativeMethodTensorly):
                  device: Device = Device.CPU,
                  dtype: DType = DType.Float64):
         tl.set_backend(backend.to_string())
+        self.n = n
+        self.m = m
+        self.orthonormal = orthonormal
+        self.backend = backend
+        self.device = device
+        self.dtype = dtype
         self.cache = WASPCache(n, m, orthonormal, device, dtype)
         self.num_f_calls = 0
         self.d_theta = d_theta
         self.d_ell = d_ell
         self.fixed_i = None
+
+    def clear_cache(self):
+        tl.set_backend(self.backend.to_string())
+        self.cache = WASPCache(self.n, self.m, self.orthonormal, self.device, self.dtype)
 
     def allowable_backends(self) -> List[Backend]:
         return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
