@@ -28,7 +28,7 @@ class BlenderSimpleMaterial:
             self.input_node: bpy.types.Node = self.material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
         elif material_type == 'Emission':
             self.input_node: bpy.types.Node = self.material.node_tree.nodes.new('ShaderNodeEmission')
-            self.input_node.inputs['Strength'].default_value = 0.003
+            self.input_node.inputs['Strength'].default_value = 0.5
 
         self.material.node_tree.links.new(material_output_node.inputs[0], self.input_node.outputs[0])
 

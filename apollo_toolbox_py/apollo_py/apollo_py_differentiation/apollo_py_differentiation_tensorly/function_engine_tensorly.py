@@ -42,6 +42,8 @@ class FunctionEngine:
         self.f = f
         self.d = d
 
+        curr_backend = tl.get_backend()
+
         tl.set_backend(backend.to_string())
 
         def f_call(x):
@@ -72,6 +74,8 @@ class FunctionEngine:
                 print('WARNING: jit compilation on derivative not currently supported with PyTorch backend')
             else:
                 raise NotImplementedError(f"Backend {backend} is not supported.")
+
+        tl.set_backend(curr_backend)
 
     def call(self, x: tl.tensor) -> tl.tensor:
         tl.set_backend(self.backend.to_string())
