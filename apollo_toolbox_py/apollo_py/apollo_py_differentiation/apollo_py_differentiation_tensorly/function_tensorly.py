@@ -62,9 +62,9 @@ class BenchmarkFunction(FunctionTensorly):
             tmp = x[rr[0]]
             for j in range(self.num_operations):
                 if ss[j] == 0:
-                    tmp = tl.sin(tmp * tl.sin(x[rr[j+1]]))
+                    tmp = tl.sin(tmp * x[rr[j+1]])
                 elif ss[j] == 1:
-                    tmp = tl.cos(tmp * tl.cos(x[rr[j + 1]]))
+                    tmp = tl.cos(tmp * x[rr[j + 1]])
                 else:
                     raise ValueError("Operation not supported")
             out.append(tmp)
