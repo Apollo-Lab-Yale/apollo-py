@@ -87,7 +87,7 @@ class DerivativeMethodForwardADJax(DerivativeMethodTensorly):
 
     def derivative_raw(self, f: FunctionTensorly, x: tl.tensor) -> tl.tensor:
         if not self.jac_fn:
-            self.jac_fn = jax.jacrev(f.call)
+            self.jac_fn = jax.jacfwd(f.call)
 
         return self.jac_fn(x)
 
