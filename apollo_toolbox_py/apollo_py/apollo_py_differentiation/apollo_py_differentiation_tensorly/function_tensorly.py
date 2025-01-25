@@ -1,8 +1,12 @@
 import math
 from abc import ABC, abstractmethod
 import random
+from functools import partial
 from typing import List
 
+import jax
+from jax import lax
+import jax.numpy as jnp
 from numba import jit
 from numba.experimental import jitclass
 
@@ -114,3 +118,44 @@ class BenchmarkFunction2(FunctionTensorly):
     def output_dim(self):
         return self.m
 
+
+class BenchmarkFunction2JAX:
+    def __init__(self, n: int, m: int, num_operations: int):
+        self.n = n
+        self.m = m
+        self.num_operations = num_operations
+
+        self.r = jnp.array([
+            [random.randint(0, n - 1) for _ in range(num_operations + 1)]
+            for _ in range(m)
+        ], dtype=jnp.int32)
+        self.s = jnp.array([
+            [random.randint(0, 1) for _ in range(num_operations)]
+            for _ in range(m)
+        ], dtype=jnp.int32)
+
+    @partial(jax.jit, static_argnums=0)
+    def call_raw(self, x: jnp.ndarray) -> jnp.ndarray:
+        def compute_one_output(rr_i, ss_i):
+            def body_fun(idx, tmp):
+                op = ss_i[idx]
+                x_val = x[rr_i[idx + 1]]
+                tmp = lax.cond(
+                    op == 0,
+                    lambda t: jnp.sin(jnp.cos(t) + x_val),
+                    lambda t: jnp.cos(jnp.sin(t) + x_val),
+                    tmp
+                )
+                return tmp
+
+            tmp0 = x[rr_i[0]]
+            return lax.fori_loop(0, self.num_operations, body_fun, tmp0)
+
+        outputs = jax.vmap(compute_one_output, in_axes=(0, 0))(self.r, self.s)
+        return outputs
+
+    def input_dim(self):
+        return self.n
+
+    def output_dim(self):
+        return self.m
