@@ -16,10 +16,15 @@ class Rotation3(M3):
         if not np.allclose(self.array @ self.array.T, np.eye(3), rtol=1e-7, atol=1e-7):
             raise ValueError("Rotation matrix must be orthonormal.")
 
+    @staticmethod
+    def new_random_with_range(minimum=-1.0, maximum=1.0):
+        v = V3.new_random_with_range(minimum, maximum)
+        return Rotation3.from_euler_angles(v)
+
     @classmethod
     def new_unchecked(cls, array: Union[List[List[float]], np.ndarray]) -> 'Rotation3':
         out = cls.__new__(cls)
-        out.array = array
+        out.array = np.asarray(array)
         return out
 
     @classmethod
@@ -162,6 +167,10 @@ class Rotation3(M3):
     def to_lie_group_so3(self):
         from apollo_toolbox_py.apollo_py_numpy.apollo_py_numpy_spatial.lie.so3 import LieGroupSO3
         return LieGroupSO3(self.array)
+
+    def __matmul__(self, other: 'Rotation3') -> 'Rotation3':
+        arr = self.array@other.array
+        return Rotation3.new_unchecked(arr)
 
     def __repr__(self) -> str:
         return f"Rotation3(\n{np.array2string(self.array)}\n)"

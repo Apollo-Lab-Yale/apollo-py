@@ -8,10 +8,11 @@ from apollo_toolbox_py.apollo_py.apollo_py_differentiation.apollo_py_differentia
 from apollo_toolbox_py.apollo_py.apollo_py_differentiation.apollo_py_differentiation_tensorly.function_tensorly import \
     BenchmarkFunction2JAX
 
-n = 10
+n = 50
+m = 50
 w = get_random_walk(n, 1000, 0.05)
 
-f = BenchmarkFunction2JAX(n, 1, 100)
+f = BenchmarkFunction2JAX(n, m, 100)
 
 start = time.time()
 g = jax.jit(jax.jacfwd(f.call_raw))

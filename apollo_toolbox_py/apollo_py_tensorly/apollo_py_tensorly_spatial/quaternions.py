@@ -50,7 +50,8 @@ class Quaternion:
         x = self.array[1]
         y = self.array[2]
         z = self.array[3]
-        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None), dtype=self.array.array.dtype))
+        out = Quaternion(
+            tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None), dtype=self.array.array.dtype))
         out[0] = w
         out[1] = -x
         out[2] = -y
@@ -69,7 +70,8 @@ class Quaternion:
         w1, x1, y1, z1 = self.array[0], self.array[1], self.array[2], self.array[3]
         w2, x2, y2, z2 = other.array[0], other.array[1], other.array[2], other.array[3]
 
-        out = Quaternion(tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None), dtype=self.array.array.dtype))
+        out = Quaternion(
+            tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None), dtype=self.array.array.dtype))
         out[0] = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
         out[1] = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
         out[2] = w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2
@@ -102,6 +104,12 @@ class UnitQuaternion(Quaternion):
 
     def __setitem__(self, key, value):
         raise NotImplementedError('__setitem__ is not supported on UnitQuaternions')
+
+    @staticmethod
+    def new_random_with_range(minimum=-1.0, maximum=1.0, device: Device = Device.CPU,
+                              dtype: DType = DType.Float64):
+        v = V3.new_random_with_range(minimum, maximum, device, dtype)
+        return UnitQuaternion.from_euler_angles(v)
 
     @classmethod
     def from_euler_angles(cls, xyz: V3) -> 'UnitQuaternion':
@@ -194,7 +202,8 @@ class UnitQuaternion(Quaternion):
     def __mul__(self, other: Union['UnitQuaternion', 'Quaternion']) -> Union['UnitQuaternion', 'Quaternion']:
         tmp = super().__mul__(other)
         if isinstance(other, UnitQuaternion):
-            qq = UnitQuaternion(tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None), dtype=self.array.array.dtype))
+            qq = UnitQuaternion(tl.tensor([1., 0., 0., 0.], device=getattr(self.array.array, "device", None),
+                                          dtype=self.array.array.dtype))
             qq.array = tmp.array
             return qq
         else:

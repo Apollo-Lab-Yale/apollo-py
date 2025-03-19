@@ -103,6 +103,11 @@ class V3(V):
             raise TypeError("Cross product requires another V3 vector.")
         return V3(T2.cross(self.array, other.array))
 
+    @staticmethod
+    def new_random_with_range(minimum=-1.0, maximum=1.0, device: Device = Device.CPU, dtype: DType = DType.Float64):
+        arr = np.random.uniform(minimum, maximum, (3, ))
+        return V3(arr, device, dtype)
+
     def __repr__(self) -> str:
         return f"V3(\n{self.array}\n)"
 

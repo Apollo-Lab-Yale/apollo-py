@@ -58,6 +58,9 @@ class Quaternion:
     def __matmul__(self, other: 'Quaternion') -> 'Quaternion':
         return self * other
 
+    def __neg__(self) -> 'Quaternion':
+        return Quaternion(-self.array)
+
     def __repr__(self) -> str:
         return f"Quaternion(\n{np.array2string(self.array)}\n)"
 
@@ -70,6 +73,11 @@ class UnitQuaternion(Quaternion):
         super().__init__(wxyz_array)
         if not np.isclose(np.linalg.norm(self.array), 1.0, rtol=1e-7, atol=1e-7):
             raise ValueError("Unit quaternion must be unit length.")
+
+    @staticmethod
+    def new_random_with_range(minimum=-1.0, maximum=1.0):
+        v = V3.new_random_with_range(minimum, maximum)
+        return UnitQuaternion.from_euler_angles(v)
 
     @classmethod
     def new_unchecked(cls, wxyz_array: Union[List[float], np.ndarray]) -> 'UnitQuaternion':
@@ -148,6 +156,9 @@ class UnitQuaternion(Quaternion):
 
     def __matmul__(self, other: Union['UnitQuaternion', 'Quaternion']) -> Union['UnitQuaternion', 'Quaternion']:
         return self * other
+
+    def __neg__(self) -> 'UnitQuaternion':
+        return UnitQuaternion.new_unchecked(-self.array)
 
     def __repr__(self) -> str:
         return f"UnitQuaternion(\n{np.array2string(self.array)}\n)"
