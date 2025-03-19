@@ -134,7 +134,9 @@ class DerivativeMethodWASP(DerivativeMethodTensorly):
 
     def clear_cache(self):
         tl.set_backend(self.backend.to_string())
-        self.cache = WASPCache(self.n, self.m, self.orthonormal, self.device, self.dtype)
+        self.cache.i = 0
+        self.cache.delta_f_t = T2.new(np.eye(self.n, self.m), device=self.device, dtype=self.dtype)
+        # self.cache = WASPCache(self.n, self.m, self.orthonormal, self.device, self.dtype)
 
     def allowable_backends(self) -> List[Backend]:
         return [Backend.Numpy, Backend.JAX, Backend.PyTorch]
